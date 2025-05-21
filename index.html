@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automação WhatsApp Inteligente</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      color: #333;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+    .plan {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .plan h3 {
+      margin-top: 0;
+    }
+    .price {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 16px 0;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    button:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Automação Inteligente no WhatsApp</h1>
+    <p style="text-align:center; max-width: 700px; margin: 0 auto;">Ofereça atendimento automático, respostas com IA e integração com Google Sheets para sua empresa ou para seus clientes com planos prontos para escalar.</p>
+
+    <h2>Planos Disponíveis</h2>
+    <div class="plans">
+      <div class="plan">
+        <h3>Básico</h3>
+        <p class="price">R$ 130/mês</p>
+        <ul>
+          <li>1 empresa atendida</li>
+          <li>Até 50 mensagens por dia</li>
+          <li>Respostas automáticas com base em planilha</li>
+          <li>Ideal para negócios locais</li>
+        </ul>
+        <button>Quero esse plano</button>
+      </div>
+      <div class="plan">
+        <h3>Padrão</h3>
+        <p class="price">R$ 260/mês</p>
+        <ul>
+          <li>Até 3 empresas atendidas</li>
+          <li>Até 150 mensagens por dia</li>
+          <li>Planilha + IA fallback (DeepSeek)</li>
+          <li>Dashboard simples + 1 ajuste/mês</li>
+        </ul>
+        <button>Quero esse plano</button>
+      </div>
+      <div class="plan">
+        <h3>Avançado</h3>
+        <p class="price">R$ 460/mês</p>
+        <ul>
+          <li>Até 5 empresas atendidas</li>
+          <li>Até 500 mensagens por dia</li>
+          <li>Atendimento humano via painel + IA</li>
+          <li>Log de clientes + 2 ajustes/mês</li>
+        </ul>
+        <button>Quero esse plano</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
