@@ -460,4 +460,620 @@
     }
     function calcularDistanciaHaversine(lat1, lon1, lat2, lon2) {
       const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c;
+    }
+    async function buscarCoordenadasNominatim(endereco) {
+      const rua = endereco.logradouro || ''; const cidade = endereco.localidade || '';
+      const url = `https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(rua)}&city=${encodeURIComponent(cidade)}&format=json&limit=1`;
+      try {
+        const res = await fetch(url); 
+        if (!res.ok) throw new Error(`Erro na API Nominatim: ${res.status}`);
+        const data = await res.json();
+        if (!data || data.length === 0) throw new Error("Coordenadas não encontradas para o endereço via Nominatim.");
+        return data[0];
+      } catch (e) { console.error("Erro Nominatim:", e); throw e; }
+    }
+    async function verificarEntregaPorCep() {
+        const cep = cepInput.value.replace(/\D/g, '');
+        if (cep.length !== 8) {
+            mostrarResultadoEntrega("Digite um CEP válido (8 dígitos)", "nao-entregamos");
+            limparCamposEndereco(); orderOptionsDiv.style.display = 'none';
+            btnAdicionarSelecaoAoCarrinho.style.display = 'none'; btnAdicionarSelecaoAoCarrinho.disabled = true;
+            iconeCarrinhoFlutuante.style.display = 'none';
+            return;
+        }
+        mostrarResultadoEntrega("Buscando endereço...", ""); limparCamposEndereco();
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            if (!res.ok) throw new Error(`Erro na API ViaCEP: ${res.status}`);
+            const dataCep = await res.json();
+            if (dataCep.erro) {
+                mostrarResultadoEntrega("CEP não encontrado.", "nao-entregamos"); orderOptionsDiv.style.display = 'none'; return;
+            }
+            logradouroInput.value = dataCep.logradouro || ''; bairroInput.value = dataCep.bairro || '';
+            cidadeInput.value = dataCep.localidade || ''; ufInput.value = dataCep.uf || '';
+            logradouroInput.readOnly = !!dataCep.logradouro;
+            bairroInput.readOnly = !!dataCep.bairro;
+            if (!dataCep.logradouro) { logradouroInput.placeholder = "Preencha a Rua/Avenida"; logradouroInput.readOnly = false; }
+            if (!dataCep.bairro) { bairroInput.placeholder = "Preencha o Bairro"; bairroInput.readOnly = false; }
+
+            mostrarResultadoEntrega("Calculando distância para entrega...", "");
+            const coordsCliente = await buscarCoordenadasNominatim(dataCep);
+            const distancia = calcularDistanciaHaversine(PIZZARIA.lat, PIZZARIA.lng, parseFloat(coordsCliente.lat), parseFloat(coordsCliente.lon));
+            if (distancia <= PIZZARIA.raioEntrega) {
+                mostrarResultadoEntrega(`✅ Entregamos no seu CEP! Distância: ${distancia.toFixed(1)} km`, "entregamos");
+                orderOptionsDiv.style.display = 'block';
+                iconeCarrinhoFlutuante.style.display = 'flex';
+                numeroInput.focus();
+            } else {
+                mostrarResultadoEntrega(`❌ Fora da área de entrega. Distância: ${distancia.toFixed(1)} km (limite ${PIZZARIA.raioEntrega}km).`, "nao-entregamos");
+                orderOptionsDiv.style.display = 'none';
+            }
+        } catch (e) {
+            console.error("Erro ao verificar entrega:", e);
+            mostrarResultadoEntrega(`Erro ao verificar endereço: ${e.message}. Tente novamente.`, "nao-entregamos");
+            orderOptionsDiv.style.display = 'none';
+        }
+        if (orderOptionsDiv.style.display === 'none') {
+            btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+            btnAdicionarSelecaoAoCarrinho.disabled = true;
+            iconeCarrinhoFlutuante.style.display = 'none';
+        } else {
+            calcularTotalPedidoConfig(); 
+        }
+        atualizarVisualizacaoCarrinho();
+    }
+
+    function calcularTotalPedidoConfig() { 
+        let totalConfigAtual = 0;
+        const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
+        if (tamanhoSelecionado) {
+            totalConfigAtual += parseFloat(tamanhoSelecionado.value);
+        }
+        adicionaisPizzaInputs.forEach(input => {
+            if (input.checked) {
+                totalConfigAtual += parseFloat(input.value);
+            }
+        });
+        bebidaSelecaoInputs.forEach(input => {
+            if (input.checked) {
+                totalConfigAtual += parseFloat(input.value);
+            }
+        });
+        if (totalPedidoConfigValorSpan) {
+            totalPedidoConfigValorSpan.textContent = `R$ ${totalConfigAtual.toFixed(2).replace('.', ',')}`;
+        }
+        if (orderOptionsDiv.style.display === 'block') {
+            const algumaSelecao = tamanhoSelecionado || Array.from(bebidaSelecaoInputs).some(input => input.checked);
+            if (algumaSelecao || editandoConjuntoId) { 
+                btnAdicionarSelecaoAoCarrinho.style.display = 'block';
+                btnAdicionarSelecaoAoCarrinho.disabled = false;
+            } else {
+                btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+                btnAdicionarSelecaoAoCarrinho.disabled = true;
+            }
+        } else {
+             btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+             btnAdicionarSelecaoAoCarrinho.disabled = true;
+        }
+    }
+
+    function adicionarSelecaoAtualAoCarrinho() {
+        const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
+        const algumaBebidaSelecionada = Array.from(bebidaSelecaoInputs).some(input => input.checked);
+
+        if (!tamanhoSelecionado && !algumaBebidaSelecionada) {
+            alert("Por favor, selecione pelo menos uma pizza ou uma bebida para adicionar ao pedido.");
+            return;
+        }
+
+        let itensDesteConjunto = [];
+        let subtotalDesteConjunto = 0;
+        let pizzaConfiguradaNestaAcao = false;
+        let bebidasAdicionadasNestaAcao = false;
+
+        if (tamanhoSelecionado) {
+            let precoTotalPizza = parseFloat(tamanhoSelecionado.value);
+            const nomeTamanho = tamanhoSelecionado.dataset.nome;
+            let nomePizzaDisplay = `Pizza ${nomeTamanho}`;
+            let saboresEscolhidos = [];
+            let componentesPizza = [{ nome: `Tamanho ${nomeTamanho}`, preco: parseFloat(tamanhoSelecionado.value) }];
+
+            if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
+                document.querySelectorAll('.sabor-checkbox:checked').forEach(cb => {
+                    saboresEscolhidos.push(cb.value);
+                });
+                if (saboresEscolhidos.length === 0) { 
+                    alert("Pizza de '2 Sabores' configurada, mas nenhum sabor individual escolhido. Por favor, selecione os sabores para a pizza.");
+                    return; 
+                }
+                if (saboresEscolhidos.length > 0) { 
+                   nomePizzaDisplay += ` (${saboresEscolhidos.join(' / ')})`;
+                   componentesPizza.push({ nome: `Sabores: ${saboresEscolhidos.join(' / ')}`, preco: 0 });
+                }
+            } else if (saborPizzaPrincipalAtualConfig) { 
+                saboresEscolhidos.push(saborPizzaPrincipalAtualConfig);
+                nomePizzaDisplay += ` (Sabor: ${saborPizzaPrincipalAtualConfig})`;
+                componentesPizza.push({ nome: `Sabor: ${saborPizzaPrincipalAtualConfig}`, preco: 0 });
+            } else if (tamanhoSelecionado) { 
+                alert("O sabor da pizza não foi definido. Verifique a configuração.");
+                return;
+            }
+
+            adicionaisPizzaInputs.forEach(input => {
+                if (input.checked) {
+                    const precoAdicional = parseFloat(input.value);
+                    precoTotalPizza += precoAdicional;
+                    componentesPizza.push({ nome: input.dataset.nome, preco: precoAdicional });
+                }
+            });
+            
+            const itemPizza = {
+                idItem: 'pizza_item_' + Date.now() + Math.random().toString(36).substring(2, 7), 
+                nomeDisplay: nomePizzaDisplay,
+                precoTotalItem: precoTotalPizza,
+                tipo: 'pizza_configurada',
+                componentesInternos: componentesPizza,
+                configSaborOriginal: saborPizzaPrincipalAtualConfig, 
+                saboresIndividuaisOriginais: saboresEscolhidos.slice()
+            };
+            itensDesteConjunto.push(itemPizza);
+            subtotalDesteConjunto += precoTotalPizza;
+            pizzaConfiguradaNestaAcao = true;
+        }
+
+        bebidaSelecaoInputs.forEach(input => {
+            if (input.checked) {
+                const precoBebida = parseFloat(input.value);
+                itensDesteConjunto.push({
+                    idItem: input.dataset.id + '_item_' + Date.now() + Math.random().toString(36).substring(2, 7), 
+                    nomeDisplay: input.dataset.nome,
+                    precoTotalItem: precoBebida,
+                    tipo: 'bebida'
+                });
+                subtotalDesteConjunto += precoBebida;
+                bebidasAdicionadasNestaAcao = true;
+            }
+        });
+
+        if (itensDesteConjunto.length > 0) {
+            iconeCarrinhoFlutuante.classList.add('carrinho-pulsando');
+            setTimeout(() => {
+                iconeCarrinhoFlutuante.classList.remove('carrinho-pulsando');
+            }, 600);
+
+            if (editandoConjuntoId) { 
+                const conjuntoEditado = {
+                    idConjunto: editandoConjuntoId,
+                    itensDoConjunto: itensDesteConjunto,
+                    subtotalConjunto: subtotalDesteConjunto,
+                    adicionadoEm: carrinho.find(c=>c.idConjunto === editandoConjuntoId)?.adicionadoEm || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), 
+                    atualizadoEm: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                };
+                const indexExistente = carrinho.findIndex(c => c.idConjunto === editandoConjuntoId);
+                if (indexExistente > -1) {
+                    carrinho[indexExistente] = conjuntoEditado;
+                } else { 
+                    carrinho.push(conjuntoEditado); 
+                }
+                editandoConjuntoId = null; 
+                btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
+            } else if (carrinho.length === 1 && !pizzaConfiguradaNestaAcao && bebidasAdicionadasNestaAcao) { 
+                const primeiroConjunto = carrinho[0];
+                itensDesteConjunto.forEach(itemNovo => { 
+                    primeiroConjunto.itensDoConjunto.push(itemNovo); 
+                    primeiroConjunto.subtotalConjunto += itemNovo.precoTotalItem; 
+                });
+                primeiroConjunto.adicionadoEm = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); 
+            } else { 
+                const novoConjunto = {
+                    idConjunto: 'conjunto_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    itensDoConjunto: itensDesteConjunto,
+                    subtotalConjunto: subtotalDesteConjunto,
+                    adicionadoEm: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                };
+                carrinho.push(novoConjunto);
+            }
+            
+            atualizarVisualizacaoCarrinho();
+            if (pizzaConfiguradaNestaAcao) resetarConfiguracaoPizza(); 
+            if (bebidasAdicionadasNestaAcao) resetarSelecaoBebidas(); 
+        }
+    }
+
+    function aplicarCupom() {
+        const codigoCupom = inputCupom.value.trim().toUpperCase();
+        
+        if (codigoCupom === "") {
+            if (cupomAplicado) { 
+                 cupomMensagemDiv.textContent = "Cupom removido.";
+                 cupomMensagemDiv.style.color = "#777"; // Cinza/Neutro
+            } else {
+                cupomMensagemDiv.textContent = ""; 
+            }
+            cupomAplicado = null; 
+            descontoAplicadoInfoDiv.style.display = 'none';
+        } else if (CUPONS_VALIDOS[codigoCupom]) {
+            cupomAplicado = { codigo: codigoCupom, ...CUPONS_VALIDOS[codigoCupom] };
+            cupomMensagemDiv.textContent = `Cupom "${codigoCupom}" aplicado: ${cupomAplicado.descricao}`;
+            cupomMensagemDiv.style.color = "green"; // Verde para sucesso
+        } else {
+            cupomMensagemDiv.textContent = "Ops! Cupom inválido ou expirado.";
+            cupomMensagemDiv.style.color = "red"; // Vermelho para inválido
+            cupomAplicado = null; 
+            descontoAplicadoInfoDiv.style.display = 'none';
+        }
+        atualizarVisualizacaoCarrinho(); 
+    }
+
+    function removerConjuntoDoCarrinho(idConjuntoARemover) {
+        carrinho = carrinho.filter(conjunto => conjunto.idConjunto !== idConjuntoARemover);
+        if (editandoConjuntoId === idConjuntoARemover) {
+            editandoConjuntoId = null;
+            btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
+            resetarConfiguracaoPizza();
+            resetarSelecaoBebidas();
+        }
+        atualizarVisualizacaoCarrinho();
+    }
+
+    function carregarConjuntoParaEdicao(idConjunto) {
+        const conjuntoParaEditar = carrinho.find(c => c.idConjunto === idConjunto);
+        if (!conjuntoParaEditar) return;
+
+        resetarConfiguracaoPizza();
+        resetarSelecaoBebidas();
+        editandoConjuntoId = idConjunto;
+
+        const pizzaDoConjunto = conjuntoParaEditar.itensDoConjunto.find(item => item.tipo === 'pizza_configurada');
+        if (pizzaDoConjunto) {
+            const tamanhoOriginal = pizzaDoConjunto.componentesInternos.find(c => c.nome.startsWith('Tamanho '));
+            if (tamanhoOriginal) {
+                const radioTamanho = document.querySelector(`input[name="tamanho"][value="${tamanhoOriginal.preco}"]`);
+                if (radioTamanho) radioTamanho.checked = true;
+            }
+            saborPizzaPrincipalAtualConfig = pizzaDoConjunto.configSaborOriginal;
+            saborSelecionadoInput.value = saborPizzaPrincipalAtualConfig;
+            if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
+                saborDuploOpcoesDiv.style.display = 'block';
+                pizzaDoConjunto.saboresIndividuaisOriginais.forEach(sabor => {
+                    const checkboxSabor = document.querySelector(`.sabor-checkbox[value="${sabor.trim()}"]`);
+                    if (checkboxSabor) checkboxSabor.checked = true;
+                });
+                let saboresAtuaisDisplay = [];
+                document.querySelectorAll('.sabor-checkbox:checked').forEach(s => saboresAtuaisDisplay.push(s.value));
+                saborSelecionadoInput.value = saboresAtuaisDisplay.length > 0 ? saboresAtuaisDisplay.join(' / ') : "Selecione os sabores";
+            } else {
+                saborDuploOpcoesDiv.style.display = 'none';
+                saborCheckboxes.forEach(cb => cb.checked = false);
+            }
+            pizzaDoConjunto.componentesInternos.forEach(comp => {
+                if (!comp.nome.startsWith('Tamanho ') && !comp.nome.startsWith('Sabor')) {
+                    const adicionalCheckbox = document.querySelector(`input[name="adicional_pizza"][data-nome="${comp.nome}"]`);
+                    if (adicionalCheckbox) adicionalCheckbox.checked = true;
+                }
+            });
+        }
+        conjuntoParaEditar.itensDoConjunto.filter(item => item.tipo === 'bebida').forEach(bebida => {
+            const bebidaCheckbox = document.querySelector(`input[name="bebida_selecao"][data-nome="${bebida.nomeDisplay}"]`);
+            if (bebidaCheckbox) bebidaCheckbox.checked = true;
+        });
+
+        btnAdicionarSelecaoAoCarrinho.textContent = 'Atualizar Pedido no Carrinho';
+        calcularTotalPedidoConfig(); 
+
+        alert("Modifique sua seleção e clique em 'Atualizar Pedido no Carrinho'.");
+        orderOptionsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        modalCarrinhoOverlay.style.display = 'none';
+    }
+    
+    function removerItemIndividualDeConjunto(idConjunto, idItemARemover) {
+        const indexConjunto = carrinho.findIndex(c => c.idConjunto === idConjunto);
+        if (indexConjunto === -1) return; 
+
+        const conjunto = carrinho[indexConjunto];
+        const itensOriginaisCount = conjunto.itensDoConjunto.length;
+
+        conjunto.itensDoConjunto = conjunto.itensDoConjunto.filter(item => item.idItem !== idItemARemover);
+
+        if (conjunto.itensDoConjunto.length < itensOriginaisCount) { 
+            if (conjunto.itensDoConjunto.length === 0) {
+                carrinho.splice(indexConjunto, 1); 
+                if (editandoConjuntoId === idConjunto) { 
+                    editandoConjuntoId = null;
+                    btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
+                    resetarConfiguracaoPizza();
+                    resetarSelecaoBebidas();
+                }
+            } else {
+                conjunto.subtotalConjunto = 0;
+                conjunto.itensDoConjunto.forEach(item => {
+                    conjunto.subtotalConjunto += item.precoTotalItem;
+                });
+            }
+            atualizarVisualizacaoCarrinho(); 
+        }
+    }
+
+    function atualizarVisualizacaoCarrinho() {
+        listaConjuntosCarrinhoDiv.innerHTML = '';
+        let totalGeralBruto = 0;
+        contadorCarrinhoSpan.textContent = carrinho.length;
+
+        if (carrinho.length === 0) {
+            carrinhoVazioMsg.style.display = 'block';
+        } else {
+            carrinhoVazioMsg.style.display = 'none';
+            carrinho.forEach((conjunto, index) => {
+                totalGeralBruto += conjunto.subtotalConjunto;
+                const divConjunto = document.createElement('div');
+                divConjunto.className = 'conjunto-no-carrinho';
+                divConjunto.dataset.idConjunto = conjunto.idConjunto;
+                const divCabecalho = document.createElement('div');
+                divCabecalho.className = 'conjunto-cabecalho';
+                const tituloConjunto = document.createElement('strong');
+                tituloConjunto.textContent = `Pedido #${index + 1} (às ${conjunto.adicionadoEm || conjunto.atualizadoEm || ''})`;
+                const subtotalSpan = document.createElement('span');
+                subtotalSpan.className = 'subtotal-conjunto';
+                subtotalSpan.textContent = `Subtotal: R$ ${conjunto.subtotalConjunto.toFixed(2).replace('.', ',')}`;
+                const botoesDiv = document.createElement('div');
+                botoesDiv.className = 'botoes-conjunto';
+                const btnEditar = document.createElement('button');
+                btnEditar.className = 'btn-editar-conjunto';
+                btnEditar.textContent = 'Editar Pedido';
+                btnEditar.onclick = () => carregarConjuntoParaEdicao(conjunto.idConjunto);
+                const btnRemoverConj = document.createElement('button');
+                btnRemoverConj.className = 'btn-remover-conjunto';
+                btnRemoverConj.textContent = 'Remover Pedido';
+                btnRemoverConj.onclick = () => removerConjuntoDoCarrinho(conjunto.idConjunto);
+                botoesDiv.appendChild(btnEditar);
+                botoesDiv.appendChild(btnRemoverConj);
+                divCabecalho.appendChild(tituloConjunto);
+                divCabecalho.appendChild(subtotalSpan);
+                divCabecalho.appendChild(botoesDiv);
+                divConjunto.appendChild(divCabecalho);
+                const ulItens = document.createElement('ul');
+                ulItens.className = 'lista-itens-do-conjunto';
+                conjunto.itensDoConjunto.forEach(item => {
+                    const li = document.createElement('li');
+                    const nomeSpan = document.createElement('span');
+                    nomeSpan.className = 'item-nome';
+                    nomeSpan.textContent = item.nomeDisplay;
+                    const divPrecoERemover = document.createElement('div'); 
+                    divPrecoERemover.style.display = 'flex';
+                    divPrecoERemover.style.alignItems = 'center';
+                    const precoSpan = document.createElement('span');
+                    precoSpan.className = 'item-preco';
+                    precoSpan.textContent = `R$ ${item.precoTotalItem.toFixed(2).replace('.', ',')}`;
+                    const btnRemoverItemInd = document.createElement('button'); 
+                    btnRemoverItemInd.className = 'btn-remover-item-individual';
+                    btnRemoverItemInd.innerHTML = '&times;'; 
+                    btnRemoverItemInd.title = `Remover ${item.nomeDisplay}`;
+                    btnRemoverItemInd.onclick = () => removerItemIndividualDeConjunto(conjunto.idConjunto, item.idItem);
+                    divPrecoERemover.appendChild(precoSpan);
+                    divPrecoERemover.appendChild(btnRemoverItemInd);
+                    li.appendChild(nomeSpan);
+                    li.appendChild(divPrecoERemover);
+                    ulItens.appendChild(li);
+                });
+                divConjunto.appendChild(ulItens);
+                listaConjuntosCarrinhoDiv.appendChild(divConjunto);
+            });
+        }
+
+        let totalFinal = totalGeralBruto;
+        let valorDescontoCalculado = 0;
+        descontoAplicadoInfoDiv.style.display = 'none'; 
+        descontoAplicadoInfoDiv.textContent = '';
+
+        if (cupomAplicado && totalGeralBruto > 0) {
+            if (cupomAplicado.tipo === "percentual") {
+                valorDescontoCalculado = (totalGeralBruto * cupomAplicado.valor) / 100;
+            } else if (cupomAplicado.tipo === "fixo") {
+                valorDescontoCalculado = cupomAplicado.valor;
+            }
+            valorDescontoCalculado = Math.min(valorDescontoCalculado, totalGeralBruto); 
+            totalFinal = totalGeralBruto - valorDescontoCalculado;
+            if (valorDescontoCalculado > 0) { 
+                descontoAplicadoInfoDiv.textContent = `Desconto (${cupomAplicado.codigo}): - R$ ${valorDescontoCalculado.toFixed(2).replace('.', ',')}`;
+                descontoAplicadoInfoDiv.style.display = 'block';
+            }
+        } else if (cupomAplicado && totalGeralBruto === 0) { 
+            cupomAplicado = null; 
+            inputCupom.value = ''; 
+            cupomMensagemDiv.textContent = ''; 
+        }
+        
+        totalPedidoModalDiv.innerText = `Total: R$ ${totalFinal.toFixed(2).replace('.', ',')}`;
+    }
+
+    function resetarConfiguracaoPizza() {
+        document.querySelectorAll('input[name="tamanho"]:checked').forEach(rb => rb.checked = false);
+        saborCheckboxes.forEach(cb => cb.checked = false);
+        adicionaisPizzaInputs.forEach(cb => cb.checked = false);
+        saborPizzaPrincipalAtualConfig = saborPizzaPrincipalUrlOriginal;
+        if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
+            saborSelecionadoInput.value = "Selecione os sabores";
+            saborDuploOpcoesDiv.style.display = 'block';
+        } else {
+            saborSelecionadoInput.value = saborPizzaPrincipalAtualConfig;
+            saborDuploOpcoesDiv.style.display = 'none';
+        }
+        calcularTotalPedidoConfig();
+    }
+
+    function resetarSelecaoBebidas() {
+        bebidaSelecaoInputs.forEach(cb => cb.checked = false);
+        calcularTotalPedidoConfig();
+    }
+
+    function enviarPedidoWhatsApp() {
+        if (orderOptionsDiv.style.display !== 'block' && carrinho.length === 0) { 
+            alert("Configure seu pedido e adicione itens ao carrinho antes de enviar."); 
+            if (orderOptionsDiv.style.display !== 'block') cepInput.focus();
+            return;
+        }
+        if (orderOptionsDiv.style.display === 'block' && carrinho.length === 0 && !editandoConjuntoId){
+                alert("Seu carrinho está vazio. Adicione itens antes de enviar o pedido."); return;
+        }
+        const camposEndereco = [
+            { input: logradouroInput, nome: "Rua/Avenida" }, { input: numeroInput, nome: "Número" },
+            { input: bairroInput, nome: "Bairro" }, { input: cidadeInput, nome: "Cidade" }, { input: ufInput, nome: "UF" }
+        ];
+        for (const campo of camposEndereco) {
+            if (!campo.input.value.trim()) {
+                alert(`Preencha o campo obrigatório de endereço: ${campo.nome}.`); campo.input.focus(); return;
+            }
+        }
+        let mensagem = "🍕 *Novo Pedido de Pizza*\n\n";
+        let totalGeralBrutoParaMsg = 0;
+        carrinho.forEach((conjunto, index) => {
+            mensagem += `📦 *Pedido #${index + 1}* (às ${conjunto.adicionadoEm || conjunto.atualizadoEm || ''})\n`;
+            conjunto.itensDoConjunto.forEach(item => {
+                mensagem += `  ▪️ ${item.nomeDisplay} - R$ ${item.precoTotalItem.toFixed(2).replace('.', ',')}\n`;
+                if (item.tipo === 'pizza_configurada' && item.componentesInternos) {
+                    item.componentesInternos.forEach(comp => {
+                        const nomeCompLimpo = comp.nome.replace("Sabores: ", "").replace("Sabor: ", "");
+                        if (!item.nomeDisplay.includes(nomeCompLimpo) &&
+                            !comp.nome.toLowerCase().startsWith("tamanho ") &&
+                            comp.preco > 0) {
+                            mensagem += `      ◦ ${comp.nome} (+ R$ ${comp.preco.toFixed(2).replace('.', ',')})\n`;
+                        }
+                    });
+                }
+            });
+            mensagem += `   SUBTOTAL DO PEDIDO: R$ ${conjunto.subtotalConjunto.toFixed(2).replace('.', ',')}\n\n`;
+            totalGeralBrutoParaMsg += conjunto.subtotalConjunto;
+        });
+
+        if (cupomAplicado) {
+            let valorDescontoCalculadoMsg = 0;
+            if (cupomAplicado.tipo === "percentual") {
+                valorDescontoCalculadoMsg = (totalGeralBrutoParaMsg * cupomAplicado.valor) / 100;
+            } else if (cupomAplicado.tipo === "fixo") {
+                valorDescontoCalculadoMsg = cupomAplicado.valor;
+            }
+            valorDescontoCalculadoMsg = Math.min(valorDescontoCalculadoMsg, totalGeralBrutoParaMsg);
+            if (valorDescontoCalculadoMsg > 0) {
+                mensagem += `\n🎟️ Cupom Aplicado: *${cupomAplicado.codigo}*\n`;
+                mensagem += `💸 Desconto: *- R$ ${valorDescontoCalculadoMsg.toFixed(2).replace('.', ',')}*\n`;
+            }
+        }
+        
+        const rua = logradouroInput.value.trim();
+        const numero = numeroInput.value.trim();
+        const bairro = bairroInput.value.trim();
+        const cidade = cidadeInput.value.trim();
+        const uf = ufInput.value.trim();
+        const cepFormatado = cepInput.value.trim(); // CEP já está no formato correto aqui
+        const enderecoCompletoParaMapa = `${rua}, ${numero}, ${bairro}, ${cidade}, ${uf}`;
+        const enderecoCodificado = encodeURIComponent(enderecoCompletoParaMapa);
+        const linkGoogleMaps = `https://maps.google.com/?q=${enderecoCodificado}`;
+
+
+        mensagem += `\n💰 *${totalPedidoModalDiv.innerText}*\n`; 
+        mensagem += `\n📍 *Endereço de Entrega:*\n`;
+        mensagem += `${rua}, ${numero}${complementoInput.value.trim() ? ' - ' + complementoInput.value.trim() : ''}\n`;
+        mensagem += `${bairro} - ${cidade}/${uf}\nCEP: ${cepFormatado}\n`;
+        mensagem += `\n🗺️ *Ver no Mapa:*\n${linkGoogleMaps}\n`;
+
+        const numeroDestinoWhatsApp = "5562982714775";
+        window.open(`https://wa.me/${numeroDestinoWhatsApp}?text=${encodeURIComponent(mensagem)}`, "_blank");
+    }
+
+    // Event Listeners
+    cepInput.addEventListener('input', () => {
+        let valNum = cepInput.value.replace(/\D/g, '');
+        cepInput.value = valNum.length > 5 ? valNum.slice(0, 5) + '-' + valNum.slice(5, 8) : valNum;
+        if (valNum.length === 8) {
+            verificarEntregaPorCep();
+        } else {
+            orderOptionsDiv.style.display = 'none';
+            mostrarResultadoEntrega("", "");
+            limparCamposEndereco();
+            btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+            btnAdicionarSelecaoAoCarrinho.disabled = true;
+            iconeCarrinhoFlutuante.style.display = 'none';
+            atualizarVisualizacaoCarrinho();
+            calcularTotalPedidoConfig();
+        }
+    });
+
+    tamanhoInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
+    
+    adicionaisPizzaInputs.forEach(inputAdicional => { 
+        inputAdicional.addEventListener('change', () => {
+            const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
+            if (!tamanhoSelecionado && inputAdicional.checked && !editandoConjuntoId) {
+                alert("Por favor, selecione primeiro o tamanho da pizza para depois adicionar opcionais a ela.");
+                inputAdicional.checked = false; 
+            }
+            calcularTotalPedidoConfig(); 
+        });
+    });
+
+    bebidaSelecaoInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
+
+    saborCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            const selecionados = document.querySelectorAll('.sabor-checkbox:checked');
+            if (selecionados.length > 2) {
+                cb.checked = false; alert('Máximo de 2 sabores para a pizza atual.');
+            }
+            if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
+                let saboresAtuais = [];
+                document.querySelectorAll('.sabor-checkbox:checked').forEach(s => saboresAtuais.push(s.value));
+                saborSelecionadoInput.value = saboresAtuais.length > 0 ? saboresAtuais.join(' / ') : "Selecione os sabores";
+            }
+        });
+    });
+
+    btnAdicionarSelecaoAoCarrinho.addEventListener('click', adicionarSelecaoAtualAoCarrinho);
+    btnWhatsappModal.addEventListener('click', enviarPedidoWhatsApp);
+    btnAplicarCupom.addEventListener('click', aplicarCupom);
+    btnContinuarComprando.addEventListener('click', () => {
+        modalCarrinhoOverlay.style.display = 'none';
+        orderOptionsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        resetarConfiguracaoPizza(); 
+        resetarSelecaoBebidas(); 
+    });
+
+    iconeCarrinhoFlutuante.addEventListener('click', () => {
+        modalCarrinhoOverlay.style.display = 'flex';
+        atualizarVisualizacaoCarrinho();
+    });
+    fecharModalBtn.addEventListener('click', () => {
+        modalCarrinhoOverlay.style.display = 'none';
+    });
+    modalCarrinhoOverlay.addEventListener('click', (event) => {
+        if (event.target === modalCarrinhoOverlay) {
+            modalCarrinhoOverlay.style.display = 'none';
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const paramsUrl = new URLSearchParams(window.location.search);
+        const saborQueryUrl = paramsUrl.get('sabor');
+        if (saborQueryUrl) {
+            saborPizzaPrincipalUrlOriginal = decodeURIComponent(saborQueryUrl);
+        } else {
+            saborPizzaPrincipalUrlOriginal = 'Mussarela';
+        }
+        saborPizzaPrincipalAtualConfig = saborPizzaPrincipalUrlOriginal;
+        if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
+            saborSelecionadoInput.value = "Selecione os sabores";
+            saborDuploOpcoesDiv.style.display = 'block';
+        } else {
+            saborSelecionadoInput.value = saborPizzaPrincipalAtualConfig;
+            saborDuploOpcoesDiv.style.display = 'none';
+        }
+        btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+        btnAdicionarSelecaoAoCarrinho.disabled = true;
+        iconeCarrinhoFlutuante.style.display = 'none';
+        atualizarVisualizacaoCarrinho();
+        calcularTotalPedidoConfig();
+    });
+  </script>
+</body>
+</html>
