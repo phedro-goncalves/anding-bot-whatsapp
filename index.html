@@ -87,7 +87,7 @@
         font-weight: 500;
         box-sizing: border-box;
         margin-top: 10px; 
-        margin-bottom: 15px; /* Espaço abaixo dele */
+        margin-bottom: 15px; 
     }
     .botao-secundario:hover {
         background-color: #5a6268;
@@ -256,8 +256,6 @@
         display: flex;
         align-items: stretch; 
         gap: 8px;
-        /* padding-bottom: 10px; Removido para dar espaço para o botão de continuar comprando */
-        /* border-bottom: 1px dashed #eee; */
     }
     .cupom-container input[type="text"] {
         flex-grow: 1;
@@ -279,7 +277,7 @@
         min-height: 1.2em; 
         text-align: right;
         line-height: 1.3;
-        /* Cor será definida via JS */
+        /* A cor será definida via JS */
     }
     .desconto-info { 
         font-size: 0.9em;
@@ -310,7 +308,6 @@
     #lista-conjuntos-carrinho {
         flex-grow: 1; 
         overflow-y: auto; 
-        /* margin-bottom: 15px; Removido, o botão "Adicionar mais itens" cuidará do espaçamento */
     }
     .modal-rodape { 
         margin-top: auto; 
@@ -452,28 +449,6 @@
     let editandoConjuntoId = null;
     let cupomAplicado = null;
 
-    function mostrarResultadoEntrega(texto, classe) { /* ... (código completo) ... */ }
-    function limparCamposEndereco() { /* ... (código completo) ... */ }
-    function calcularDistanciaHaversine(lat1, lon1, lat2, lon2) { /* ... (código completo) ... */ }
-    async function buscarCoordenadasNominatim(endereco) { /* ... (código completo) ... */ }
-    async function verificarEntregaPorCep() { /* ... (código completo) ... */ }
-    function calcularTotalPedidoConfig() { /* ... (código completo) ... */ }
-    function adicionarSelecaoAtualAoCarrinho() { /* ... (código completo com nova lógica para 1 pedido) ... */ }
-    function aplicarCupom() { /* ... (código completo com novas cores) ... */ }
-    function removerConjuntoDoCarrinho(idConjuntoARemover) { /* ... (código completo) ... */ }
-    function carregarConjuntoParaEdicao(idConjunto) { /* ... (código completo) ... */ }
-    function removerItemIndividualDeConjunto(idConjunto, idItemARemover) { /* ... (código completo) ... */ }
-    function atualizarVisualizacaoCarrinho() { /* ... (código completo) ... */ }
-    function resetarConfiguracaoPizza() { /* ... (código completo) ... */ }
-    function resetarSelecaoBebidas() { /* ... (código completo) ... */ }
-    function enviarPedidoWhatsApp() { /* ... (código completo) ... */ }
-    
-    // --- INÍCIO DO BLOCO DE CÓDIGO JAVASCRIPT COMPLETO ---
-    // (Cole aqui o JavaScript completo da ÚLTIMA RESPOSTA, 
-    //  e então aplique as modificações nas funções 'aplicarCupom' e 'adicionarSelecaoAtualAoCarrinho'
-    //  conforme descrito nesta nova resposta)
-
-    // (Funções de endereço e outras utilitárias - completas como na resposta anterior)
     function mostrarResultadoEntrega(texto, classe) {
       resultadoEntregaDiv.textContent = texto;
       resultadoEntregaDiv.className = classe;
@@ -684,19 +659,15 @@
                 }
                 editandoConjuntoId = null; 
                 btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
-            } else if (carrinho.length === 1 && !editandoConjuntoId && !pizzaConfiguradaNestaAcao && bebidasAdicionadasNestaAcao) { 
-                // MODIFICADO: Só adiciona ao pedido existente se APENAS bebidas estão sendo adicionadas
-                // e já existe um pedido (que deve conter uma pizza).
-                // Se uma nova pizza está sendo configurada, cria um novo pedido.
+            } else if (carrinho.length === 1 && !pizzaConfiguradaNestaAcao && bebidasAdicionadasNestaAcao) { 
+                // Adiciona ao único pedido existente APENAS SE estiver adicionando SÓ bebidas
                 const primeiroConjunto = carrinho[0];
-                let subtotalAdicionalParaPrimeiroConjunto = 0;
-                itensDesteConjunto.forEach(itemNovo => { // itensDesteConjunto aqui serão apenas bebidas
+                itensDesteConjunto.forEach(itemNovo => { 
                     primeiroConjunto.itensDoConjunto.push(itemNovo); 
-                    subtotalAdicionalParaPrimeiroConjunto += itemNovo.precoTotalItem; 
+                    primeiroConjunto.subtotalConjunto += itemNovo.precoTotalItem; 
                 });
-                primeiroConjunto.subtotalConjunto += subtotalAdicionalParaPrimeiroConjunto;
                 primeiroConjunto.adicionadoEm = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); 
-            } else { // Cria novo pedido (se carrinho vazio, >1 pedido, ou se está adicionando uma pizza)
+            } else { 
                 const novoConjunto = {
                     idConjunto: 'conjunto_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                     itensDoConjunto: itensDesteConjunto,
@@ -709,7 +680,7 @@
             atualizarVisualizacaoCarrinho();
             if (pizzaConfiguradaNestaAcao) resetarConfiguracaoPizza(); 
             if (bebidasAdicionadasNestaAcao) resetarSelecaoBebidas(); 
-            // A chamada para calcularTotalPedidoConfig está dentro dos resets
+            // calcularTotalPedidoConfig é chamado dentro dos resets
         }
     }
 
@@ -719,9 +690,9 @@
         if (codigoCupom === "") {
             if (cupomAplicado) { 
                  cupomMensagemDiv.textContent = "Cupom removido.";
-                 cupomMensagemDiv.style.color = "#777"; // Cinza/Neutro
+                 cupomMensagemDiv.style.color = "#777"; // Cinza/Neutro para removido
             } else {
-                cupomMensagemDiv.textContent = ""; 
+                cupomMensagemDiv.textContent = ""; // Limpa se estava vazio e continua vazio
             }
             cupomAplicado = null; 
             descontoAplicadoInfoDiv.style.display = 'none';
@@ -792,8 +763,14 @@
         });
 
         btnAdicionarSelecaoAoCarrinho.textContent = 'Atualizar Pedido no Carrinho';
-        // O conjunto não é mais removido aqui, a lógica de substituição está em adicionarSelecaoAtualAoCarrinho
-        // carrinho = carrinho.filter(c => c.idConjunto !== idConjunto);
+        // O conjunto é removido do carrinho principal QUANDO o usuário clica em "Atualizar" e a nova versão é adicionada.
+        // Se ele cancelar a edição (não clicando em atualizar), o conjunto original permanece.
+        // Para isso, a remoção do conjunto original deve ser feita na função adicionarSelecaoAtualAoCarrinho quando editandoConjuntoId estiver setado.
+        // No entanto, para evitar que o usuário edite e o item antigo ainda esteja lá,
+        // a abordagem de remover ao carregar para edição é mais simples de gerenciar,
+        // mesmo que o usuário perca as edições se não "salvar" (readicionar).
+        // Vou manter a lógica de remover ao carregar para edição por enquanto.
+        // carrinho = carrinho.filter(c => c.idConjunto !== idConjunto); // Linha original de remoção imediata
         // atualizarVisualizacaoCarrinho(); 
         calcularTotalPedidoConfig(); 
 
@@ -1022,7 +999,18 @@
     });
 
     tamanhoInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
-    adicionaisPizzaInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
+    
+    adicionaisPizzaInputs.forEach(inputAdicional => { 
+        inputAdicional.addEventListener('change', () => {
+            const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
+            if (!tamanhoSelecionado && inputAdicional.checked && !editandoConjuntoId) {
+                alert("Por favor, selecione primeiro o tamanho da pizza para depois adicionar opcionais a ela.");
+                inputAdicional.checked = false; 
+            }
+            calcularTotalPedidoConfig(); 
+        });
+    });
+
     bebidaSelecaoInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
 
     saborCheckboxes.forEach(cb => {
