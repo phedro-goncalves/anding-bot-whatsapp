@@ -3,39 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pedido de Pizza</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <title>Cardápio Pizzaria Moderna</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
+    /* --- CSS - ESTILOS GLOBAIS E LAYOUT --- */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
     body {
       font-family: 'Poppins', sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-      background: #f9f9f9;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      padding-bottom: 80px; 
+      max-width: 650px; 
+      margin: 30px auto;
+      padding: 25px;
+      background-color: #f8f9fa; 
+      color: #343A40; 
+      line-height: 1.65;
+      padding-bottom: 90px; 
     }
-    h2, h3 {
-      color: #e63946;
+
+    /* --- TÍTULOS --- */
+    h2 { 
+      color: #D9534F; 
+      text-align: center;
+      margin-bottom: 35px;
+      font-weight: 600;
+      font-size: 2.2em;
     }
-    .section {
+    h3 { 
+      color: #495057; 
+      margin-top: 30px;
       margin-bottom: 20px;
+      font-weight: 500;
+      font-size: 1.4em;
+      border-bottom: 2px solid #e9e9e9;
+      padding-bottom: 12px;
     }
-    .option {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 10px 15px;
-      margin-bottom: 10px;
+    /* Títulos para categorias de produtos e dentro de cards */
+    .categoria-titulo, .section-interna > h4, #modal-carrinho-conteudo h3 { /* Adicionado .section-interna > h4 */
+      color: #444;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-weight: 500;
+      font-size: 1.2em;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+     #modal-carrinho-conteudo .modal-cabecalho h3 { /* Título do modal */
+        color: #D9534F;
+        font-size: 1.6em;
+        border-bottom: none; /* Remover borda do h3 dentro do .modal-cabecalho */
+        padding-bottom: 0;
+    }
+
+
+    /* --- SEÇÕES DE CONTEÚDO E OPÇÕES (CARDS) --- */
+    .section-card { 
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid #f0f0f0;
+    }
+    .categoria-container { 
+      background-color: #fff;
       border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+      border: 1px solid #f0f0f0;
+      overflow: hidden; /* Para conter bordas arredondadas do conteúdo */
+    }
+    .categoria-titulo {
+      background-color: #f9f9f9;
+      padding: 15px 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee; /* Borda mesmo quando recolhido */
+      font-weight: 500;
+      font-size: 1.15em;
+      color: #333;
+      transition: background-color 0.2s ease;
+    }
+    .categoria-titulo.aberto {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    .categoria-titulo:hover {
+        background-color: #f0f0f0;
+    }
+    .categoria-seta {
+        transition: transform 0.3s ease-in-out;
+        font-size: 0.8em;
+    }
+    .categoria-titulo.aberto .categoria-seta {
+        transform: rotate(180deg);
+    }
+    .categoria-conteudo {
+        padding: 0 20px; 
+        max-height: 0;   
+        overflow: hidden; 
+        transition: max-height 0.35s ease-out, padding-top 0.35s ease-out, padding-bottom 0.35s ease-out; 
+        background-color: #fff;
+        border-top: none;
+    }
+    .categoria-conteudo.visivel { 
+        padding-top: 15px;    
+        padding-bottom: 20px; 
+        /* max-height será definido dinamicamente via JavaScript */
+    }
+    .section-interna { /* Para agrupar elementos dentro de um .categoria-conteudo */
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #f0f0f0;
+    }
+    .section-interna:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+
+
+    .option { 
+      background-color: #fdfdfd;
+      border: 1px solid #f0f0f0;
+      padding: 12px 15px;
+      margin-top: 10px; 
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 15px;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .option:hover {
+      background-color: #f5f5f5;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     .option img.product-image {
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
       border-radius: 4px;
       object-fit: cover;
     }
@@ -43,333 +153,206 @@
       flex-grow: 1;
       display: flex;
       align-items: center;
+      font-size: 0.95em;
     }
-    .option .option-details input {
-      margin-right: 10px;
+    .option .option-details input[type="radio"],
+    .option .option-details input[type="checkbox"] {
+      margin-right: 12px;
+      transform: scale(1.1);
+      accent-color: #D9534F;
     }
     .option .option-price {
       font-weight: 600;
-      color: #333;
+      color: #D9534F;
       margin-left: auto;
+      font-size: 0.95em;
     }
 
-    .botao-primario {
-      background-color: #e63946;
-      color: white;
-      padding: 12px 20px;
-      border: none;
+    /* --- BOTÕES --- */
+    .botao-primario, .botao-secundario, .botao-whatsapp {
+      padding: 14px 22px;
       border-radius: 8px;
-      font-size: 16px;
-      margin-top: 10px;
-      width: 100%;
-      cursor: pointer;
-      font-weight: 600;
-      font-family: 'Poppins', sans-serif;
-      display: block;
-      box-sizing: border-box;
-    }
-    .botao-primario:hover:not(:disabled) {
-      background-color: #c5303f;
-    }
-     .botao-primario:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
-    .botao-secundario { 
-        background-color: #6c757d;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 8px;
-        font-size: 0.95em;
-        width: 100%; 
-        cursor: pointer;
-        font-weight: 500;
-        box-sizing: border-box;
-        margin-top: 10px; 
-        margin-bottom: 15px; 
-    }
-    .botao-secundario:hover {
-        background-color: #5a6268;
-    }
-    .botao-whatsapp { 
-      background-color: #25D366;
-      color: white;
-      padding: 12px 20px; 
+      font-weight: 500;
+      transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 0.95em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       border: none;
-      border-radius: 8px; 
-      font-size: 16px; 
-      margin-top: 20px;
-      width: 100%;
       cursor: pointer;
-      text-align: center;
-      display: block; 
-      font-weight: 600;
-      text-decoration: none !important;
-      font-family: 'Poppins', sans-serif;
-      box-sizing: border-box;
-    }
-    .botao-whatsapp:hover {
-      background-color: #1DAE54;
-    }
-    
-    #sabor-selecionado-display {
       width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: #eee;
-      pointer-events: none;
       box-sizing: border-box;
-      margin-bottom: 10px;
+      display: block;
+      font-family: 'Poppins', sans-serif;
     }
+    .botao-primario:hover:not(:disabled), 
+    .botao-secundario:hover, 
+    .botao-whatsapp:hover,
+    .cupom-container button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 7px rgba(0,0,0,0.15);
+    }
+    .botao-primario { background-color: #D9534F; color: white; margin-top: 10px; }
+    .botao-primario:hover:not(:disabled) { background-color: #c0423c; }
+    .botao-primario:disabled { background-color: #e0e0e0; color: #a0a0a0; cursor: not-allowed; box-shadow: none; }
 
-    .endereco-section { margin-bottom: 30px; }
-    .endereco-section label { display: block; margin: 8px 0 4px 0; font-weight: 600; font-size: 14px; color: #444; }
-    .endereco-section input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f8f8f8; font-size: 14px; box-sizing: border-box; }
-    .endereco-section input[readonly] { background: #eee; cursor: not-allowed; }
-    #cep { margin-bottom: 10px; }
-    #resultado-entrega { font-weight: 600; padding: 12px; margin-top: 10px; border-radius: 6px; text-align: center; font-size: 15px; user-select: none; }
-    .entregamos { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
-    .nao-entregamos { background-color: #ffebee; color: #c62828; border: 1px solid #c62828; }
+    .botao-secundario { background-color: #6c757d; color: white; margin-top: 10px; margin-bottom: 15px;}
+    .botao-secundario:hover { background-color: #5a6268; }
 
-    #icone-carrinho-flutuante {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: #e63946;
+    .botao-whatsapp { background-color: #25D366; color: white; margin-top: 25px; text-decoration: none !important; text-align:center;}
+    .botao-whatsapp:hover { background-color: #1DAE54; }
+    
+    /* --- INPUTS E DISPLAYS DE INFORMAÇÃO --- */
+    /* #sabor-selecionado-display foi removido */
+    .endereco-section label { display: block; margin: 12px 0 5px 0; font-weight: 500; font-size: 0.95em; color: #495057; }
+    .endereco-section input { width: 100%; padding: 12px 15px; border: 1px solid #ced4da; border-radius: 6px; background: #fff; font-size: 1em; box-sizing: border-box; color: #495057; transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;}
+    .endereco-section input:focus { border-color: #D9534F; box-shadow: 0 0 0 0.15rem rgba(217, 83, 79, 0.2); outline: none; }
+    .endereco-section input[readonly] { background: #e9ecef; color: #777; cursor: not-allowed; }
+    #cep { margin-bottom: 15px; }
+    #resultado-entrega { font-weight: 500; padding: 14px; margin-top: 15px; border-radius: 6px; text-align: center; font-size: 1em; user-select: none; border: 1px solid transparent; }
+    .entregamos { background-color: #d1e7dd; color: #0f5132; border-color: #badbcc; }
+    .nao-entregamos { background-color: #f8d7da; color: #842029; border-color: #f5c2c7; }
+
+    /* --- ÍCONE E MODAL DO CARRINHO --- */
+    #icone-carrinho-flutuante { position: fixed; bottom: 25px; right: 25px; background-color: #D9534F; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; transition: background-color 0.3s ease, transform 0.2s ease; }
+    #icone-carrinho-flutuante:hover { background-color: #c0423c; transform: scale(1.08); }
+    #contador-carrinho { position: absolute; top: -5px; right: -5px; background-color: #ffffff; color: #D9534F; font-size: 12px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #D9534F; }
+    
+    @keyframes pulse-carrinho { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+    .carrinho-pulsando { animation: pulse-carrinho 0.6s ease-out; }
+
+    #modal-carrinho-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.65); z-index: 1001; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.25s ease-out, visibility 0s linear 0.25s; }
+    #modal-carrinho-overlay.visivel { opacity: 1; visibility: visible; transition-delay: 0s; }
+    #modal-carrinho-conteudo { background-color: #fff; padding: 25px 30px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; transform: scale(0.95) translateY(15px); opacity: 0; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease-out; }
+    #modal-carrinho-overlay.visivel #modal-carrinho-conteudo { transform: scale(1) translateY(0); opacity: 1; }
+    .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+    /* .modal-cabecalho h3 já estilizado acima */
+    .fechar-modal-btn { font-size: 30px; font-weight: 300; color: #aaa; background: none; border: none; cursor: pointer; padding: 0; line-height: 1; transition: color 0.2s ease-in-out; }
+    .fechar-modal-btn:hover { color: #555; }
+    
+    #total-pedido-config-container { padding: 12px; margin: 18px 0; background-color: #f8f9fa; border-radius: 8px; text-align: right; font-size: 1.05em; border: 1px solid #eee; }
+    #total-pedido-config-container strong { color: #343A40; font-weight: 500; }
+    #total-pedido-config-valor { color: #D9534F; font-weight: 700; }
+
+    .cupom-container { margin-top: 20px; display: flex; align-items: stretch; gap: 10px; }
+    .cupom-container input::placeholder { color: #bbb; }
+    .cupom-container input[type="text"] { flex-grow: 1; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; color: #495057;}
+    .cupom-container input[type="text"]:focus { border-color: #D9534F; box-shadow: 0 0 0 0.15rem rgba(217, 83, 79, 0.2); outline: none; }
+    .cupom-container button { margin-top: 0; width: auto; padding: 10px 18px; font-size: 0.9em; white-space: nowrap; background-color: #5cb85c; } 
+    .cupom-container button:hover:not(:disabled) { background-color: #4cae4c; }
+    #cupom-mensagem { font-size: 0.9em; margin-top: 10px; min-height: 1.3em; text-align: right; line-height: 1.4; }
+    .desconto-info { font-size: 0.95em; color: #28a745; text-align: right; margin-top: 5px; margin-bottom: 10px; display: none; font-weight: 500; }
+    #total-pedido-display-modal { font-size: 1.3em; font-weight: 700; padding-top: 18px; text-align: right; margin-top: 18px; color: #D9534F; border-top: 2px solid #D9534F; }
+
+    #lista-conjuntos-carrinho { flex-grow: 1; overflow-y: auto; margin-bottom: 15px; }
+    .conjunto-no-carrinho { border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 18px; background-color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .conjunto-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #dee2e6; flex-wrap: wrap; }
+    .conjunto-cabecalho strong { font-size: 1em; color: #495057; font-weight: 500; }
+    .subtotal-conjunto { font-size: 0.95em; font-weight: 600; color: #343A40; margin-left: auto; margin-right: 10px; }
+    .botoes-conjunto { display: flex; align-items: center; } 
+    .botoes-conjunto button { padding: 5px 10px; font-size: 0.8em; border-radius: 5px; margin-left: 6px; transition: opacity 0.2s ease-in-out; }
+    .botoes-conjunto button:hover { opacity: 0.8; }
+    .btn-editar-conjunto { background-color: #f0f0f0; color: #555; border: 1px solid #ccc; }
+    .btn-remover-conjunto { background-color: #f9dada; color: #D9534F; border: 1px solid #D9534F; }
+    
+    .lista-itens-do-conjunto { list-style-type: none; padding-left: 0; font-size: 0.95em; }
+    .lista-itens-do-conjunto li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; color: #444; border-bottom: 1px solid #f5f5f5; }
+    .lista-itens-do-conjunto li:last-child { border-bottom: none; }
+    .lista-itens-do-conjunto li .item-nome { flex-grow: 1; margin-right: 15px; font-size:0.95em; }
+    .lista-itens-do-conjunto li .item-preco { font-weight: normal; white-space: nowrap; color: #555; font-size:0.95em;}
+    .btn-remover-item-individual { background-color: transparent; color: #D9534F; border: none; padding: 0 5px; cursor: pointer; font-size: 1em; font-weight: bold; line-height: 1; margin-left: 10px; opacity: 0.6; transition: opacity 0.2s ease-in-out; }
+    .btn-remover-item-individual:hover { color: #c0423c; opacity: 1; }
+
+    .modal-rodape { margin-top: auto; padding-top: 20px; border-top: 1px solid #eee; }
+    
+    #confirmacao-adicionado-pedido {
+        position: fixed; 
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -70%) scale(0.9); 
+        background-color: #28a745; 
         color: white;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        cursor: pointer;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        z-index: 1000;
-        transition: background-color 0.3s;
+        padding: 18px 35px; 
+        border-radius: 10px; 
+        z-index: 1005; 
+        box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+        opacity: 0;
+        transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        pointer-events: none; 
+        font-size: 1.1em;
+        text-align: center;
+        border: 2px solid rgba(255,255,255,0.5);
     }
-    #icone-carrinho-flutuante:hover {
-        background-color: #c5303f;
-    }
-    #contador-carrinho {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background-color: white;
-        color: #e63946;
-        font-size: 12px;
-        font-weight: bold;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #e63946;
-    }
-    @keyframes pulse-carrinho {
-        0% { transform: scale(1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        50% { transform: scale(1.2); box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
-        100% { transform: scale(1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-    }
-    .carrinho-pulsando {
-        animation: pulse-carrinho 0.6s ease-in-out;
-    }
-
-    #modal-carrinho-overlay {
-        display: none; 
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5); 
-        z-index: 1001; 
-        justify-content: center;
-        align-items: center;
-    }
-    #modal-carrinho-conteudo {
-        background-color: #fff;
-        padding: 25px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        width: 90%;
-        max-width: 500px; 
-        max-height: 85vh; 
-        overflow-y: auto; 
-        position: relative;
-        display: flex;
-        flex-direction: column;
-    }
-    .modal-cabecalho {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-    .modal-cabecalho h3 {
-        margin: 0;
-    }
-    .fechar-modal-btn {
-        font-size: 28px;
-        font-weight: bold;
-        color: #888;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0; 
-        line-height: 1; 
-    }
-    .fechar-modal-btn:hover {
-        color: #333;
-    }
-    #total-pedido-display-modal { 
-      font-size: 18px; 
-      font-weight: bold;
-      padding-top: 15px;
-      text-align: right;
-      margin-top: 15px;
-      color: #e63946;
-      border-top: 2px solid #e63946;
-    }
-    #total-pedido-config-container { 
-        padding: 10px;
-        margin: 15px 0;
-        background-color: #f0f0f0;
-        border-radius: 6px;
-        text-align: right;
-        font-size: 1.05em;
-        border: 1px solid #ddd;
-    }
-    #total-pedido-config-container strong {
-        color: #333;
-    }
-    #total-pedido-config-valor { 
-        color: #e63946;
-        font-weight: bold;
-    }
-    .cupom-container {
-        margin-top: 15px;
-        display: flex;
-        align-items: stretch; 
-        gap: 8px;
-    }
-    .cupom-container input[type="text"] {
-        flex-grow: 1;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 0.95em;
-    }
-    .cupom-container button {
-        margin-top: 0;
-        width: auto;
-        padding: 8px 15px;
-        font-size: 0.9em;
-        white-space: nowrap; 
-    }
-    #cupom-mensagem {
-        font-size: 0.85em;
-        margin-top: 8px; 
-        min-height: 1.2em; 
-        text-align: right;
-        line-height: 1.3;
-    }
-    .desconto-info { 
-        font-size: 0.9em;
-        color: green;
-        text-align: right;
-        margin-top: 4px; 
-        margin-bottom: 10px;
-        display: none; 
-    }
-
-    .conjunto-no-carrinho { border: 1px solid #eee; border-radius: 6px; padding: 10px; margin-bottom: 15px; background-color: #fdfdfd; }
-    .conjunto-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #ddd; flex-wrap: wrap; }
-    .conjunto-cabecalho strong { font-size: 0.95em; color: #555; margin-right: 10px; }
-    .subtotal-conjunto { font-size: 0.9em; font-weight: bold; color: #444; margin-left: auto; margin-right: 10px; }
-    .botoes-conjunto { display: flex; } 
-    .botoes-conjunto button { padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; margin-left: 5px; }
-    .btn-editar-conjunto { background-color: #ddeeff; color: #007bff; border: 1px solid #007bff; }
-    .btn-editar-conjunto:hover { background-color: #cce7ff; }
-    .btn-remover-conjunto { background-color: #ffdddd; color: #c62828; border: 1px solid #c62828; }
-    .btn-remover-conjunto:hover { background-color: #ffcccc; }
-    .lista-itens-do-conjunto { list-style-type: none; padding-left: 0; font-size: 0.9em; }
-    .lista-itens-do-conjunto li { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; color: #333; }
-    .lista-itens-do-conjunto li .item-nome { flex-grow: 1; margin-right: 10px; }
-    .lista-itens-do-conjunto li .item-preco { font-weight: normal; white-space: nowrap; }
-    .btn-remover-item-individual { background-color: transparent; color: #e63946; border: none; padding: 0 3px; cursor: pointer; font-size: 1em; font-weight: bold; line-height: 1; margin-left: 8px; opacity: 0.7; }
-    .btn-remover-item-individual:hover { color: #c5303f; opacity: 1; }
-
-    #lista-conjuntos-carrinho {
-        flex-grow: 1; 
-        overflow-y: auto; 
-    }
-    .modal-rodape { 
-        margin-top: auto; 
-        padding-top: 15px; 
-        border-top: 1px solid #eee; 
+    #confirmacao-adicionado-pedido.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1); 
     }
   </style>
 </head>
 <body>
 
-  <h2>Montar Pedido</h2>
-  <div class="endereco-section">
+  <h2>Cardápio da Pizzaria</h2>
+  <div class="section-card endereco-section">
     <h3>Informações de Entrega</h3>
-    <input type="text" id="cep" placeholder="Digite seu CEP (apenas números)" maxlength="9" />
+    <input type="text" id="cep" placeholder="Seu CEP (somente números)" maxlength="9" />
     <div id="resultado-entrega"></div>
     <label for="logradouro">Rua/Avenida</label>
     <input type="text" id="logradouro" placeholder="Rua/Avenida" readonly />
     <label for="numero">Número <span style="color:red">*</span></label>
-    <input type="text" id="numero" placeholder="Número" />
+    <input type="text" id="numero" placeholder="Ex: 123" />
     <label for="complemento">Complemento</label>
-    <input type="text" id="complemento" placeholder="Apartamento, bloco, referência" />
+    <input type="text" id="complemento" placeholder="Ap, Bloco, Casa, Referência" />
     <label for="bairro">Bairro</label>
     <input type="text" id="bairro" placeholder="Bairro" readonly />
     <label for="cidade">Cidade</label>
     <input type="text" id="cidade" placeholder="Cidade" readonly />
     <label for="uf">Estado</label>
-    <input type="text" id="uf" placeholder="Estado" readonly />
+    <input type="text" id="uf" placeholder="UF" readonly />
   </div>
 
   <div id="orderOptions" style="display: none;">
-    <div class="section">
-      <label for="sabor-selecionado-display">Sabor Principal da Pizza Atual:</label>
-      <input type="text" id="sabor-selecionado-display" readonly />
+    <div class="categoria-container">
+        <h3 class="categoria-titulo clicavel">🍕 Pizzas Salgadas <span class="categoria-seta">▼</span></h3>
+        <div class="categoria-conteudo">
+            <div id="sabor-duplo-opcoes" style="display: none; margin-top: 10px; padding-top:10px; border-top: 1px dashed #eee;">
+              <h4>Escolha até 2 sabores</h4>
+              <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Frango+C" alt="Frango com Catupiry" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Frango com Catupiry"> Frango com Catupiry</div></label>
+              <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Frango+B" alt="Frango com Bacon" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Frango com Bacon"> Frango com Bacon</div></label>
+              <label class="option"><img src="https://via.placeholder.com/50x50.png?text=4+Queijos" alt="Quatro Queijos" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Quatro Queijos"> Quatro Queijos</div></label>
+              <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Portuguesa" alt="Portuguesa" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Portuguesa"> Portuguesa</div></label>
+              <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Mussarela" alt="Mussarela" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Mussarela"> Mussarela</div></label>
+            </div>
+            <div class="section-interna" style="margin-top: 15px; padding:15px 0;">
+                <h4>Tamanho da Pizza</h4>
+                <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Pizza+G" alt="Pizza Grande" class="product-image"><div class="option-details"><input type="radio" name="tamanho" value="70" data-nome="Grande" class="tamanho-radio"> Grande</div><span class="option-price">R$ 70,00</span></label>
+                <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Pizza+M" alt="Pizza Média" class="product-image"><div class="option-details"><input type="radio" name="tamanho" value="55" data-nome="Média" class="tamanho-radio"> Média</div><span class="option-price">R$ 55,00</span></label>
+                <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Pizza+P" alt="Pizza Pequena" class="product-image"><div class="option-details"><input type="radio" name="tamanho" value="40" data-nome="Pequena" class="tamanho-radio"> Pequena</div><span class="option-price">R$ 40,00</span></label>
+            </div>
+        </div>
     </div>
-    <div id="sabor-duplo-opcoes" class="section" style="display: none;">
-      <h3>Escolha até 2 sabores para a pizza atual</h3>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Frango+Catupiry" alt="Frango com Catupiry" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Frango com Catupiry"> Frango com Catupiry</div></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Frango+Bacon" alt="Frango com Bacon" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Frango com Bacon"> Frango com Bacon</div></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Quatro+Queijos" alt="Quatro Queijos" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Quatro Queijos"> Quatro Queijos</div></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Portuguesa" alt="Portuguesa" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Portuguesa"> Portuguesa</div></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Mussarela" alt="Mussarela" class="product-image"><div class="option-details"><input type="checkbox" class="sabor-checkbox" value="Mussarela"> Mussarela</div></label>
+
+    <div class="categoria-container">
+      <h3 class="categoria-titulo clicavel">🧀 Adicionais da Pizza <span class="categoria-seta">▼</span></h3>
+      <div class="categoria-conteudo">
+        <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Borda+C" alt="Borda Catupiry" class="product-image"><div class="option-details"><input type="checkbox" name="adicional_pizza" value="5" data-nome="Borda Catupiry" class="adicional-checkbox"> Borda Catupiry</div><span class="option-price">R$ 5,00</span></label>
+        <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Borda+Ch" alt="Borda Cheddar" class="product-image"><div class="option-details"><input type="checkbox" name="adicional_pizza" value="5" data-nome="Borda Cheddar" class="adicional-checkbox"> Borda Cheddar</div><span class="option-price">R$ 5,00</span></label>
+        <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Extra+B" alt="Extra Bacon" class="product-image"><div class="option-details"><input type="checkbox" name="adicional_pizza" value="6" data-nome="Extra Bacon" class="adicional-checkbox"> Extra Bacon</div><span class="option-price">R$ 6,00</span></label>
+      </div>
     </div>
-    <div class="section">
-      <h3>Tamanho da Pizza Atual</h3>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Pizza+G" alt="Pizza Grande" class="product-image"><div class="option-details"><input type="radio" name="tamanho" value="70" data-nome="Grande"> Grande</div><span class="option-price">R$ 70,00</span></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Pizza+M" alt="Pizza Média" class="product-image"><div class="option-details"><input type="radio" name="tamanho" value="55" data-nome="Média"> Média</div><span class="option-price">R$ 55,00</span></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Pizza+P" alt="Pizza Pequena" class="product-image"><div class="option-details"><input type="radio" name="tamanho" value="40" data-nome="Pequena"> Pequena</div><span class="option-price">R$ 40,00</span></label>
+
+    <div class="categoria-container">
+      <h3 class="categoria-titulo clicavel">🥤 Bebidas <span class="categoria-seta">▼</span></h3>
+      <div class="categoria-conteudo">
+        <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Coca+2L" alt="Coca-Cola 2 Litros" class="product-image"><div class="option-details"><input type="checkbox" name="bebida_selecao" value="12" data-nome="Coca-Cola 2 Litros" data-id="beb_coca_2l" class="bebida-checkbox"> Coca-Cola 2 Litros</div><span class="option-price">R$ 12,00</span></label>
+        <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Coca+Lata" alt="Coca-Cola 350 ML" class="product-image"><div class="option-details"><input type="checkbox" name="bebida_selecao" value="5" data-nome="Coca-Cola 350 ML" data-id="beb_coca_350ml" class="bebida-checkbox"> Coca-Cola 350 ML</div><span class="option-price">R$ 5,00</span></label>
+      </div>
     </div>
-    <div class="section">
-      <h3>Adicionais para a Pizza Atual</h3>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Borda" alt="Borda Catupiry" class="product-image"><div class="option-details"><input type="checkbox" name="adicional_pizza" value="5" data-nome="Borda Catupiry"> Borda Catupiry</div><span class="option-price">R$ 5,00</span></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Borda" alt="Borda Cheddar" class="product-image"><div class="option-details"><input type="checkbox" name="adicional_pizza" value="5" data-nome="Borda Cheddar"> Borda Cheddar</div><span class="option-price">R$ 5,00</span></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Bacon" alt="Extra Bacon" class="product-image"><div class="option-details"><input type="checkbox" name="adicional_pizza" value="6" data-nome="Extra Bacon"> Extra Bacon</div><span class="option-price">R$ 6,00</span></label>
-    </div>
-    <div class="section" style="margin-top: 30px;">
-      <h3>Bebidas</h3>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Coca+2L" alt="Coca-Cola 2 Litros" class="product-image"><div class="option-details"><input type="checkbox" name="bebida_selecao" value="12" data-nome="Coca-Cola 2 Litros" data-id="beb_coca_2l"> Coca-Cola 2 Litros</div><span class="option-price">R$ 12,00</span></label>
-      <label class="option"><img src="https://via.placeholder.com/60x60.png?text=Coca+Lata" alt="Coca-Cola 350 ML" class="product-image"><div class="option-details"><input type="checkbox" name="bebida_selecao" value="5" data-nome="Coca-Cola 350 ML" data-id="beb_coca_350ml"> Coca-Cola 350 ML</div><span class="option-price">R$ 5,00</span></label>
-    </div>
+
     <div id="total-pedido-config-container">
-      <strong>Total do Pedido: <span id="total-pedido-config-valor">R$ 0,00</span></strong>
+      <strong>Total da Configuração Atual: <span id="total-pedido-config-valor">R$ 0,00</span></strong>
     </div>
-    <button id="btnAdicionarSelecaoAoCarrinho" class="botao-primario" style="display: none; margin-top: 10px;">Adicionar Seleção ao Carrinho</button>
+    <div id="confirmacao-adicionado-pedido" style="display:none;">Itens adicionados ao pedido!</div>
+    <button id="btnAdicionarSelecaoAoCarrinho" class="botao-primario" style="display: none; margin-top: 20px;">Adicionar ao Pedido</button>
   </div>
 
   <div id="icone-carrinho-flutuante" style="display: none;">
@@ -380,7 +363,7 @@
   <div id="modal-carrinho-overlay">
     <div id="modal-carrinho-conteudo">
       <div class="modal-cabecalho">
-        <h3>🛒 Seu Pedido Completo</h3>
+        <h3>🛒 Seu Pedido</h3>
         <button id="fechar-modal-carrinho" class="fechar-modal-btn">×</button>
       </div>
       
@@ -388,801 +371,851 @@
           <p id="carrinho-vazio-msg" style="text-align: center; color: #777;">Seu carrinho está vazio.</p>
       </div>
       
-      <button id="btn-continuar-comprando" class="botao-secundario">Adicionar mais itens</button>
+      <button id="btn-continuar-comprando" class="botao-secundario">Adicionar Mais Itens</button>
 
       <div class="modal-rodape">
           <div class="cupom-container">
             <input type="text" id="input-cupom" placeholder="Digite seu cupom">
-            <button id="btn-aplicar-cupom" class="botao-primario">Aplicar</button>
+            <button id="btn-aplicar-cupom" class="botao-primario">Aplicar Cupom</button>
           </div>
           <div id="cupom-mensagem"></div>
           <div id="desconto-aplicado-info" class="desconto-info"></div>
           <div id="total-pedido-display-modal">Total: R$ 0,00</div>
-          <a href="#" id="btn-whatsapp-modal" class="botao-whatsapp">Concluir Pedido e Enviar por WhatsApp</a>
+          <a href="#" id="btn-whatsapp-modal" class="botao-whatsapp">Finalizar Pedido</a>
       </div>
     </div>
   </div>
 
-  <script>// PARTE 1 DO JAVASCRIPT
+  <script>
+    // --- JAVASCRIPT COMPLETO COM AS ÚLTIMAS ATUALIZAÇÕES ---
 
-// Seletores de Elementos DOM
-const tamanhoInputs = document.querySelectorAll('input[name="tamanho"]');
-const adicionaisPizzaInputs = document.querySelectorAll('input[name="adicional_pizza"]');
-const bebidaSelecaoInputs = document.querySelectorAll('input[name="bebida_selecao"]');
-const saborCheckboxes = document.querySelectorAll('.sabor-checkbox');
-const saborSelecionadoInput = document.getElementById('sabor-selecionado-display');
-const saborDuploOpcoesDiv = document.getElementById('sabor-duplo-opcoes');
-const cepInput = document.getElementById('cep');
-const logradouroInput = document.getElementById('logradouro');
-const bairroInput = document.getElementById('bairro');
-const cidadeInput = document.getElementById('cidade');
-const ufInput = document.getElementById('uf');
-const numeroInput = document.getElementById('numero');
-const complementoInput = document.getElementById('complemento');
-const resultadoEntregaDiv = document.getElementById('resultado-entrega');
-const orderOptionsDiv = document.getElementById('orderOptions');
-const btnAdicionarSelecaoAoCarrinho = document.getElementById('btnAdicionarSelecaoAoCarrinho');
-const totalPedidoConfigValorSpan = document.getElementById('total-pedido-config-valor'); 
-const iconeCarrinhoFlutuante = document.getElementById('icone-carrinho-flutuante');
-const contadorCarrinhoSpan = document.getElementById('contador-carrinho');
-const modalCarrinhoOverlay = document.getElementById('modal-carrinho-overlay');
-const fecharModalBtn = document.getElementById('fechar-modal-carrinho');
-const listaConjuntosCarrinhoDiv = document.getElementById('lista-conjuntos-carrinho');
-const totalPedidoModalDiv = document.getElementById('total-pedido-display-modal'); 
-const btnWhatsappModal = document.getElementById('btn-whatsapp-modal');
-const carrinhoVazioMsg = document.getElementById('carrinho-vazio-msg');
-const inputCupom = document.getElementById('input-cupom');
-const btnAplicarCupom = document.getElementById('btn-aplicar-cupom');
-const cupomMensagemDiv = document.getElementById('cupom-mensagem');
-const descontoAplicadoInfoDiv = document.getElementById('desconto-aplicado-info');
-const btnContinuarComprando = document.getElementById('btn-continuar-comprando');
+    // --- Seletores de Elementos DOM ---
+    const tamanhoInputs = document.querySelectorAll('input[name="tamanho"].tamanho-radio');
+    const adicionaisPizzaInputs = document.querySelectorAll('input[name="adicional_pizza"].adicional-checkbox');
+    const bebidaSelecaoInputs = document.querySelectorAll('input[name="bebida_selecao"].bebida-checkbox');
+    const saborCheckboxes = document.querySelectorAll('.sabor-checkbox');
+    // const saborSelecionadoInputDisplay = document.getElementById('sabor-selecionado-display'); // REMOVIDO
+    const saborDuploOpcoesDiv = document.getElementById('sabor-duplo-opcoes');
+    const cepInput = document.getElementById('cep');
+    const logradouroInput = document.getElementById('logradouro');
+    const bairroInput = document.getElementById('bairro');
+    const cidadeInput = document.getElementById('cidade');
+    const ufInput = document.getElementById('uf');
+    const numeroInput = document.getElementById('numero');
+    const complementoInput = document.getElementById('complemento');
+    const resultadoEntregaDiv = document.getElementById('resultado-entrega');
+    const orderOptionsDiv = document.getElementById('orderOptions');
+    const btnAdicionarSelecaoAoCarrinho = document.getElementById('btnAdicionarSelecaoAoCarrinho');
+    const totalPedidoConfigValorSpan = document.getElementById('total-pedido-config-valor');
+    const confirmacaoAdicionadoPedidoDiv = document.getElementById('confirmacao-adicionado-pedido');
+    const iconeCarrinhoFlutuante = document.getElementById('icone-carrinho-flutuante');
+    const contadorCarrinhoSpan = document.getElementById('contador-carrinho');
+    const modalCarrinhoOverlay = document.getElementById('modal-carrinho-overlay');
+    const fecharModalBtn = document.getElementById('fechar-modal-carrinho');
+    const listaConjuntosCarrinhoDiv = document.getElementById('lista-conjuntos-carrinho');
+    const totalPedidoModalDiv = document.getElementById('total-pedido-display-modal');
+    const btnWhatsappModal = document.getElementById('btn-whatsapp-modal');
+    const carrinhoVazioMsg = document.getElementById('carrinho-vazio-msg');
+    const inputCupom = document.getElementById('input-cupom');
+    const btnAplicarCupom = document.getElementById('btn-aplicar-cupom');
+    const cupomMensagemDiv = document.getElementById('cupom-mensagem');
+    const descontoAplicadoInfoDiv = document.getElementById('desconto-aplicado-info');
+    const btnContinuarComprando = document.getElementById('btn-continuar-comprando');
+    const categoriaTitulos = document.querySelectorAll('.categoria-titulo.clicavel');
 
-// Constantes e Variáveis Globais
-const PIZZARIA = { lat: -16.68781976896233, lng: -49.1883159035631, raioEntrega: 10 };
-const CUPONS_VALIDOS = { 
-    "DESCONTO10": { tipo: "percentual", valor: 10, descricao: "10% de desconto!" },
-    "OFF5": { tipo: "fixo", valor: 5, descricao: "R$ 5,00 de desconto!" } 
-};
+    // --- Constantes e Variáveis Globais ---
+    const PIZZARIA = { lat: -16.68781976896233, lng: -49.1883159035631, raioEntrega: 10 };
+    const CUPONS_VALIDOS = { 
+        "DESCONTO10": { tipo: "percentual", valor: 10, descricao: "10% de desconto!" },
+        "OFF5": { tipo: "fixo", valor: 5, descricao: "R$ 5,00 de desconto!" } 
+    };
+    let carrinho = []; 
+    let saborPizzaPrincipalUrlOriginal = '';
+    let saborPizzaPrincipalAtualConfig = '';
+    let editandoConjuntoId = null;
+    let cupomAplicado = null;
 
-let carrinho = []; 
-let saborPizzaPrincipalUrlOriginal = '';
-let saborPizzaPrincipalAtualConfig = '';
-let editandoConjuntoId = null;
-let cupomAplicado = null;
-
-// Funções de Endereço
-function mostrarResultadoEntrega(texto, classe) {
-  resultadoEntregaDiv.textContent = texto;
-  resultadoEntregaDiv.className = classe;
-}
-function limparCamposEndereco() {
-  logradouroInput.value = ''; bairroInput.value = ''; cidadeInput.value = ''; ufInput.value = ''; 
-  numeroInput.value = ''; complementoInput.value = '';
-  logradouroInput.readOnly = true; bairroInput.readOnly = true;
-}
-function calcularDistanciaHaversine(lat1, lon1, lat2, lon2) {
-  const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c;
-}
-async function buscarCoordenadasNominatim(endereco) {
-  const rua = endereco.logradouro || ''; const cidade = endereco.localidade || '';
-  const url = `https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(rua)}&city=${encodeURIComponent(cidade)}&format=json&limit=1`;
-  try {
-    const res = await fetch(url); 
-    if (!res.ok) throw new Error(`Erro na API Nominatim: ${res.status}`);
-    const data = await res.json();
-    if (!data || data.length === 0) throw new Error("Coordenadas não encontradas para o endereço via Nominatim.");
-    return data[0];
-  } catch (e) { console.error("Erro Nominatim:", e); throw e; }
-}
-async function verificarEntregaPorCep() {
-    const cep = cepInput.value.replace(/\D/g, '');
-    if (cep.length !== 8) {
-        mostrarResultadoEntrega("Digite um CEP válido (8 dígitos)", "nao-entregamos");
-        limparCamposEndereco(); orderOptionsDiv.style.display = 'none';
-        btnAdicionarSelecaoAoCarrinho.style.display = 'none'; btnAdicionarSelecaoAoCarrinho.disabled = true;
-        iconeCarrinhoFlutuante.style.display = 'none';
-        return;
+    // --- Funções Utilitárias de Endereço ---
+    function mostrarResultadoEntrega(texto, classe) {
+      resultadoEntregaDiv.textContent = texto;
+      resultadoEntregaDiv.className = 'resultado-entrega ' + classe;
     }
-    mostrarResultadoEntrega("Buscando endereço...", ""); limparCamposEndereco();
-    try {
-        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-        if (!res.ok) throw new Error(`Erro na API ViaCEP: ${res.status}`);
-        const dataCep = await res.json();
-        if (dataCep.erro) {
-            mostrarResultadoEntrega("CEP não encontrado.", "nao-entregamos"); orderOptionsDiv.style.display = 'none'; return;
+    function limparCamposEndereco() {
+      logradouroInput.value = ''; bairroInput.value = ''; cidadeInput.value = ''; ufInput.value = ''; 
+      numeroInput.value = ''; complementoInput.value = '';
+      logradouroInput.readOnly = true; bairroInput.readOnly = true;
+    }
+    function calcularDistanciaHaversine(lat1, lon1, lat2, lon2) {
+      const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c;
+    }
+    async function buscarCoordenadasNominatim(endereco) {
+      const rua = endereco.logradouro || ''; const cidade = endereco.localidade || '';
+      const url = `https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(rua)}&city=${encodeURIComponent(cidade)}&format=json&limit=1`;
+      try {
+        const res = await fetch(url); 
+        if (!res.ok) throw new Error(`Erro na API Nominatim: ${res.status}`);
+        const data = await res.json();
+        if (!data || data.length === 0) throw new Error("Coordenadas não encontradas para o endereço via Nominatim.");
+        return data[0];
+      } catch (e) { console.error("Erro Nominatim:", e); throw e; }
+    }
+    async function verificarEntregaPorCep() {
+        const cep = cepInput.value.replace(/\D/g, '');
+        if (cep.length !== 8) {
+            mostrarResultadoEntrega("Digite um CEP válido (8 dígitos)", "nao-entregamos");
+            limparCamposEndereco(); orderOptionsDiv.style.display = 'none';
+            btnAdicionarSelecaoAoCarrinho.style.display = 'none'; btnAdicionarSelecaoAoCarrinho.disabled = true;
+            iconeCarrinhoFlutuante.style.display = 'none';
+            return;
         }
-        logradouroInput.value = dataCep.logradouro || ''; bairroInput.value = dataCep.bairro || '';
-        cidadeInput.value = dataCep.localidade || ''; ufInput.value = dataCep.uf || '';
-        logradouroInput.readOnly = !!dataCep.logradouro;
-        bairroInput.readOnly = !!dataCep.bairro;
-        if (!dataCep.logradouro) { logradouroInput.placeholder = "Preencha a Rua/Avenida"; logradouroInput.readOnly = false; }
-        if (!dataCep.bairro) { bairroInput.placeholder = "Preencha o Bairro"; bairroInput.readOnly = false; }
+        mostrarResultadoEntrega("Buscando endereço...", ""); limparCamposEndereco();
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            if (!res.ok) throw new Error(`Erro na API ViaCEP: ${res.status}`);
+            const dataCep = await res.json();
+            if (dataCep.erro) {
+                mostrarResultadoEntrega("CEP não encontrado.", "nao-entregamos"); orderOptionsDiv.style.display = 'none'; return;
+            }
+            logradouroInput.value = dataCep.logradouro || ''; bairroInput.value = dataCep.bairro || '';
+            cidadeInput.value = dataCep.localidade || ''; ufInput.value = dataCep.uf || '';
+            logradouroInput.readOnly = !!dataCep.logradouro;
+            bairroInput.readOnly = !!dataCep.bairro;
+            if (!dataCep.logradouro) { logradouroInput.placeholder = "Preencha a Rua/Avenida"; logradouroInput.readOnly = false; }
+            if (!dataCep.bairro) { bairroInput.placeholder = "Preencha o Bairro"; bairroInput.readOnly = false; }
 
-        mostrarResultadoEntrega("Calculando distância para entrega...", "");
-        const coordsCliente = await buscarCoordenadasNominatim(dataCep);
-        const distancia = calcularDistanciaHaversine(PIZZARIA.lat, PIZZARIA.lng, parseFloat(coordsCliente.lat), parseFloat(coordsCliente.lon));
-        if (distancia <= PIZZARIA.raioEntrega) {
-            mostrarResultadoEntrega(`✅ Entregamos no seu CEP! Distância: ${distancia.toFixed(1)} km`, "entregamos");
-            orderOptionsDiv.style.display = 'block';
-            iconeCarrinhoFlutuante.style.display = 'flex';
-            numeroInput.focus();
-        } else {
-            mostrarResultadoEntrega(`❌ Fora da área de entrega. Distância: ${distancia.toFixed(1)} km (limite ${PIZZARIA.raioEntrega}km).`, "nao-entregamos");
+            mostrarResultadoEntrega("Calculando distância para entrega...", "");
+            const coordsCliente = await buscarCoordenadasNominatim(dataCep);
+            const distancia = calcularDistanciaHaversine(PIZZARIA.lat, PIZZARIA.lng, parseFloat(coordsCliente.lat), parseFloat(coordsCliente.lon));
+            if (distancia <= PIZZARIA.raioEntrega) {
+                mostrarResultadoEntrega(`✅ Entregamos no seu CEP! Distância: ${distancia.toFixed(1)} km`, "entregamos");
+                orderOptionsDiv.style.display = 'block';
+                iconeCarrinhoFlutuante.style.display = 'flex';
+                numeroInput.focus();
+            } else {
+                mostrarResultadoEntrega(`❌ Fora da área de entrega. Distância: ${distancia.toFixed(1)} km (limite ${PIZZARIA.raioEntrega}km).`, "nao-entregamos");
+                orderOptionsDiv.style.display = 'none';
+            }
+        } catch (e) {
+            console.error("Erro completo ao verificar entrega:", e);
+            mostrarResultadoEntrega(`Erro ao verificar endereço. Tente novamente. Detalhe: ${e.message}`, "nao-entregamos");
             orderOptionsDiv.style.display = 'none';
         }
-    } catch (e) {
-        console.error("Erro ao verificar entrega:", e);
-        mostrarResultadoEntrega(`Erro ao verificar endereço: ${e.message}. Tente novamente.`, "nao-entregamos");
-        orderOptionsDiv.style.display = 'none';
-    }
-    if (orderOptionsDiv.style.display === 'none') {
-        btnAdicionarSelecaoAoCarrinho.style.display = 'none';
-        btnAdicionarSelecaoAoCarrinho.disabled = true;
-        iconeCarrinhoFlutuante.style.display = 'none';
-    } else {
-        calcularTotalPedidoConfig(); 
-    }
-    atualizarVisualizacaoCarrinho();
-}
-
-function calcularTotalPedidoConfig() { 
-    let totalConfigAtual = 0;
-    const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
-    if (tamanhoSelecionado) {
-        totalConfigAtual += parseFloat(tamanhoSelecionado.value);
-    }
-    adicionaisPizzaInputs.forEach(input => {
-        if (input.checked) {
-            totalConfigAtual += parseFloat(input.value);
-        }
-    });
-    bebidaSelecaoInputs.forEach(input => {
-        if (input.checked) {
-            totalConfigAtual += parseFloat(input.value);
-        }
-    });
-    if (totalPedidoConfigValorSpan) {
-        totalPedidoConfigValorSpan.textContent = `R$ ${totalConfigAtual.toFixed(2).replace('.', ',')}`;
-    }
-    if (orderOptionsDiv.style.display === 'block') {
-        const algumaSelecao = tamanhoSelecionado || Array.from(bebidaSelecaoInputs).some(input => input.checked);
-        if (algumaSelecao || editandoConjuntoId) { 
-            btnAdicionarSelecaoAoCarrinho.style.display = 'block';
-            btnAdicionarSelecaoAoCarrinho.disabled = false;
-        } else {
+        if (orderOptionsDiv.style.display === 'none') {
             btnAdicionarSelecaoAoCarrinho.style.display = 'none';
             btnAdicionarSelecaoAoCarrinho.disabled = true;
+            iconeCarrinhoFlutuante.style.display = 'none';
+        } else {
+            calcularTotalPedidoConfig(); 
         }
-    } else {
-          btnAdicionarSelecaoAoCarrinho.style.display = 'none';
-          btnAdicionarSelecaoAoCarrinho.disabled = true;
-    }
-}
-// FIM DA PARTE 1 DO JAVASCRIPT
-// PARTE 2 DO JAVASCRIPT
-
-function adicionarSelecaoAtualAoCarrinho() {
-    const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
-    const algumaBebidaSelecionada = Array.from(bebidaSelecaoInputs).some(input => input.checked);
-
-    if (!tamanhoSelecionado && !algumaBebidaSelecionada) {
-        alert("Por favor, selecione pelo menos uma pizza ou uma bebida para adicionar ao pedido.");
-        return;
+        atualizarVisualizacaoCarrinho();
     }
 
-    let itensDesteConjunto = [];
-    let subtotalDesteConjunto = 0;
-    let pizzaConfiguradaNestaAcao = false;
-    let bebidasAdicionadasNestaAcao = false;
+    // --- Funções de Cálculo e Reset da Configuração Atual ---
+    function calcularTotalPedidoConfig() { 
+        let totalConfigAtual = 0;
+        const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
+        if (tamanhoSelecionado) {
+            totalConfigAtual += parseFloat(tamanhoSelecionado.value);
+        }
+        adicionaisPizzaInputs.forEach(input => {
+            if (input.checked) {
+                if (tamanhoSelecionado || editandoConjuntoId) { 
+                    totalConfigAtual += parseFloat(input.value);
+                }
+            }
+        });
+        bebidaSelecaoInputs.forEach(input => {
+            if (input.checked) {
+                totalConfigAtual += parseFloat(input.value);
+            }
+        });
+        if (totalPedidoConfigValorSpan) {
+            totalPedidoConfigValorSpan.textContent = `R$ ${totalConfigAtual.toFixed(2).replace('.', ',')}`;
+        }
+        if (orderOptionsDiv.style.display === 'block') {
+            const algumaSelecao = tamanhoSelecionado || Array.from(bebidaSelecaoInputs).some(input => input.checked);
+            if (algumaSelecao || editandoConjuntoId) { 
+                btnAdicionarSelecaoAoCarrinho.style.display = 'block';
+                btnAdicionarSelecaoAoCarrinho.disabled = false;
+            } else {
+                btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+                btnAdicionarSelecaoAoCarrinho.disabled = true;
+            }
+        } else {
+             btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+             btnAdicionarSelecaoAoCarrinho.disabled = true;
+        }
+    }
 
-    if (tamanhoSelecionado) {
-        let precoTotalPizza = parseFloat(tamanhoSelecionado.value);
-        const nomeTamanho = tamanhoSelecionado.dataset.nome;
-        let nomePizzaDisplay = `Pizza ${nomeTamanho}`;
-        let saboresEscolhidos = [];
-        let componentesPizza = [{ nome: `Tamanho ${nomeTamanho}`, preco: parseFloat(tamanhoSelecionado.value) }];
+    function resetarConfiguracaoPizza() {
+        document.querySelectorAll('input[name="tamanho"]:checked').forEach(rb => rb.checked = false);
+        saborCheckboxes.forEach(cb => cb.checked = false);
+        adicionaisPizzaInputs.forEach(cb => cb.checked = false);
 
+        saborPizzaPrincipalAtualConfig = saborPizzaPrincipalUrlOriginal; 
         if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
-            document.querySelectorAll('.sabor-checkbox:checked').forEach(cb => {
-                saboresEscolhidos.push(cb.value);
-            });
-            if (saboresEscolhidos.length === 0) { 
-                alert("Pizza de '2 Sabores' configurada, mas nenhum sabor individual escolhido. Por favor, selecione os sabores para a pizza.");
-                return; 
-            }
-            if (saboresEscolhidos.length > 0) { 
-               nomePizzaDisplay += ` (${saboresEscolhidos.join(' / ')})`;
-               componentesPizza.push({ nome: `Sabores: ${saboresEscolhidos.join(' / ')}`, preco: 0 });
-            }
-        } else if (saborPizzaPrincipalAtualConfig) { 
-            saboresEscolhidos.push(saborPizzaPrincipalAtualConfig);
-            nomePizzaDisplay += ` (Sabor: ${saborPizzaPrincipalAtualConfig})`;
-            componentesPizza.push({ nome: `Sabor: ${saborPizzaPrincipalAtualConfig}`, preco: 0 });
-        } else if (tamanhoSelecionado) { 
-            // Este caso não deveria ocorrer se a lógica de saborPizzaPrincipalAtualConfig estiver sempre setada
-            alert("O sabor da pizza não foi definido. Verifique a configuração.");
+            // saborSelecionadoInputDisplay.value = "Selecione os sabores"; // REMOVIDO
+            saborDuploOpcoesDiv.style.display = 'block';
+        } else {
+            // saborSelecionadoInputDisplay.value = saborPizzaPrincipalAtualConfig; // REMOVIDO
+            saborDuploOpcoesDiv.style.display = 'none';
+        }
+        calcularTotalPedidoConfig(); 
+    }
+
+    function resetarSelecaoBebidas() {
+        bebidaSelecaoInputs.forEach(cb => cb.checked = false);
+        calcularTotalPedidoConfig(); 
+    }
+    
+    // --- Lógica Principal do Carrinho ---
+    function adicionarSelecaoAtualAoCarrinho() {
+        const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
+        const algumaBebidaSelecionada = Array.from(bebidaSelecaoInputs).some(input => input.checked);
+
+        if (!tamanhoSelecionado && !algumaBebidaSelecionada) {
+            alert("Por favor, selecione pelo menos uma pizza ou uma bebida para adicionar ao pedido.");
             return;
         }
 
-        adicionaisPizzaInputs.forEach(input => {
+        let itensDesteConjunto = [];
+        let subtotalDesteConjunto = 0;
+        let pizzaConfiguradaNestaAcao = false;
+        let bebidasAdicionadasNestaAcao = false;
+
+        if (tamanhoSelecionado) {
+            let precoTotalPizza = parseFloat(tamanhoSelecionado.value);
+            const nomeTamanho = tamanhoSelecionado.dataset.nome;
+            let nomePizzaDisplay = `Pizza ${nomeTamanho}`;
+            let saboresEscolhidos = [];
+            let componentesPizza = [{ nome: `Tamanho ${nomeTamanho}`, preco: parseFloat(tamanhoSelecionado.value) }];
+
+            if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
+                document.querySelectorAll('.sabor-checkbox:checked').forEach(cb => {
+                    saboresEscolhidos.push(cb.value);
+                });
+                if (saboresEscolhidos.length === 0) { 
+                    alert("Pizza de '2 Sabores' configurada, mas nenhum sabor individual escolhido. Por favor, selecione os sabores para a pizza.");
+                    return; 
+                }
+                if (saboresEscolhidos.length > 0) { 
+                   nomePizzaDisplay += ` (${saboresEscolhidos.join(' / ')})`;
+                   componentesPizza.push({ nome: `Sabores: ${saboresEscolhidos.join(' / ')}`, preco: 0 });
+                }
+            } else if (saborPizzaPrincipalAtualConfig) { 
+                saboresEscolhidos.push(saborPizzaPrincipalAtualConfig);
+                nomePizzaDisplay += ` (Sabor: ${saborPizzaPrincipalAtualConfig})`;
+                componentesPizza.push({ nome: `Sabor: ${saborPizzaPrincipalAtualConfig}`, preco: 0 });
+            } else if (tamanhoSelecionado) { 
+                alert("O sabor da pizza não foi definido. Verifique a configuração.");
+                return;
+            }
+
+            adicionaisPizzaInputs.forEach(input => {
+                if (input.checked) {
+                    const precoAdicional = parseFloat(input.value);
+                    precoTotalPizza += precoAdicional;
+                    componentesPizza.push({ nome: input.dataset.nome, preco: precoAdicional });
+                }
+            });
+            
+            const itemPizza = {
+                idItem: 'pizza_item_' + Date.now() + Math.random().toString(36).substring(2, 7), 
+                nomeDisplay: nomePizzaDisplay,
+                precoTotalItem: precoTotalPizza,
+                tipo: 'pizza_configurada',
+                categoria: 'Pizzas', 
+                componentesInternos: componentesPizza,
+                configSaborOriginal: saborPizzaPrincipalAtualConfig, 
+                saboresIndividuaisOriginais: saboresEscolhidos.slice()
+            };
+            itensDesteConjunto.push(itemPizza);
+            subtotalDesteConjunto += precoTotalPizza;
+            pizzaConfiguradaNestaAcao = true;
+        }
+
+        bebidaSelecaoInputs.forEach(input => {
             if (input.checked) {
-                const precoAdicional = parseFloat(input.value);
-                precoTotalPizza += precoAdicional;
-                componentesPizza.push({ nome: input.dataset.nome, preco: precoAdicional });
+                const precoBebida = parseFloat(input.value);
+                itensDesteConjunto.push({
+                    idItem: input.dataset.id + '_item_' + Date.now() + Math.random().toString(36).substring(2, 7), 
+                    nomeDisplay: input.dataset.nome,
+                    precoTotalItem: precoBebida,
+                    tipo: 'bebida',
+                    categoria: 'Bebidas' 
+                });
+                subtotalDesteConjunto += precoBebida;
+                bebidasAdicionadasNestaAcao = true;
             }
         });
-        
-        const itemPizza = {
-            idItem: 'pizza_item_' + Date.now() + Math.random().toString(36).substring(2, 7), 
-            nomeDisplay: nomePizzaDisplay,
-            precoTotalItem: precoTotalPizza,
-            tipo: 'pizza_configurada',
-            componentesInternos: componentesPizza,
-            configSaborOriginal: saborPizzaPrincipalAtualConfig, 
-            saboresIndividuaisOriginais: saboresEscolhidos.slice()
-        };
-        itensDesteConjunto.push(itemPizza);
-        subtotalDesteConjunto += precoTotalPizza;
-        pizzaConfiguradaNestaAcao = true;
-    }
 
-    bebidaSelecaoInputs.forEach(input => {
-        if (input.checked) {
-            const precoBebida = parseFloat(input.value);
-            itensDesteConjunto.push({
-                idItem: input.dataset.id + '_item_' + Date.now() + Math.random().toString(36).substring(2, 7), 
-                nomeDisplay: input.dataset.nome,
-                precoTotalItem: precoBebida,
-                tipo: 'bebida'
-            });
-            subtotalDesteConjunto += precoBebida;
-            bebidasAdicionadasNestaAcao = true;
-        }
-    });
-
-    if (itensDesteConjunto.length > 0) {
-        iconeCarrinhoFlutuante.classList.add('carrinho-pulsando');
-        setTimeout(() => {
-            iconeCarrinhoFlutuante.classList.remove('carrinho-pulsando');
-        }, 600);
-
-        if (editandoConjuntoId) { 
-            const conjuntoEditado = {
-                idConjunto: editandoConjuntoId,
-                itensDoConjunto: itensDesteConjunto,
-                subtotalConjunto: subtotalDesteConjunto,
-                // Mantém a hora original da primeira adição, mas adiciona uma de atualização
-                adicionadoEm: carrinho.find(c=>c.idConjunto === editandoConjuntoId)?.adicionadoEm || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), 
-                atualizadoEm: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-            };
-            const indexExistente = carrinho.findIndex(c => c.idConjunto === editandoConjuntoId);
-            if (indexExistente > -1) {
-                carrinho[indexExistente] = conjuntoEditado;
-            } else { // Caso o conjunto tenha sido removido enquanto se editava (pouco provável com a lógica atual)
-                carrinho.push(conjuntoEditado); 
+        if (itensDesteConjunto.length > 0) {
+            iconeCarrinhoFlutuante.classList.add('carrinho-pulsando');
+            if(confirmacaoAdicionadoPedidoDiv) { 
+                confirmacaoAdicionadoPedidoDiv.textContent = editandoConjuntoId ? 'Pedido atualizado no carrinho!' : 'Itens adicionados ao pedido!';
+                confirmacaoAdicionadoPedidoDiv.style.display = 'block'; 
+                setTimeout(() => confirmacaoAdicionadoPedidoDiv.classList.add('show'), 10); 
+                 setTimeout(() => {
+                    confirmacaoAdicionadoPedidoDiv.classList.remove('show');
+                    setTimeout(() => confirmacaoAdicionadoPedidoDiv.style.display = 'none', 300); 
+                }, 2500);
             }
-            editandoConjuntoId = null; 
-            btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
-        } else if (carrinho.length === 1 && !pizzaConfiguradaNestaAcao && bebidasAdicionadasNestaAcao) { 
-            // Adiciona ao único pedido existente APENAS SE estiver adicionando SÓ bebidas
-            const primeiroConjunto = carrinho[0];
-            itensDesteConjunto.forEach(itemNovo => { 
-                primeiroConjunto.itensDoConjunto.push(itemNovo); 
-                primeiroConjunto.subtotalConjunto += itemNovo.precoTotalItem; 
-            });
-            primeiroConjunto.adicionadoEm = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); // Atualiza hora para a última modificação
-        } else { // Cria novo pedido (se carrinho vazio, >1 pedido, ou se está adicionando uma pizza)
-            const novoConjunto = {
-                idConjunto: 'conjunto_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                itensDoConjunto: itensDesteConjunto,
-                subtotalConjunto: subtotalDesteConjunto,
-                adicionadoEm: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-            };
-            carrinho.push(novoConjunto);
-        }
-        
-        atualizarVisualizacaoCarrinho();
-        if (pizzaConfiguradaNestaAcao) resetarConfiguracaoPizza(); 
-        if (bebidasAdicionadasNestaAcao) resetarSelecaoBebidas(); 
-        // calcularTotalPedidoConfig é chamado dentro dos resets
-    }
-}
+            setTimeout(() => {
+                iconeCarrinhoFlutuante.classList.remove('carrinho-pulsando');
+            }, 600); 
 
-function aplicarCupom() {
-    const codigoCupom = inputCupom.value.trim().toUpperCase();
-    
-    if (codigoCupom === "") {
-        if (cupomAplicado) { 
-             cupomMensagemDiv.textContent = "Cupom removido.";
-             cupomMensagemDiv.style.color = "#777"; // Cinza/Neutro
-        } else {
-            cupomMensagemDiv.textContent = ""; 
-        }
-        cupomAplicado = null; 
-        descontoAplicadoInfoDiv.style.display = 'none';
-    } else if (CUPONS_VALIDOS[codigoCupom]) {
-        cupomAplicado = { codigo: codigoCupom, ...CUPONS_VALIDOS[codigoCupom] };
-        cupomMensagemDiv.textContent = `Cupom "${codigoCupom}" aplicado: ${cupomAplicado.descricao}`;
-        cupomMensagemDiv.style.color = "green"; // Verde para sucesso
-    } else {
-        cupomMensagemDiv.textContent = "Ops! Cupom inválido ou expirado.";
-        cupomMensagemDiv.style.color = "red"; // Vermelho para inválido
-        cupomAplicado = null; 
-        descontoAplicadoInfoDiv.style.display = 'none';
-    }
-    atualizarVisualizacaoCarrinho(); 
-}
-
-function removerConjuntoDoCarrinho(idConjuntoARemover) {
-    carrinho = carrinho.filter(conjunto => conjunto.idConjunto !== idConjuntoARemover);
-    if (editandoConjuntoId === idConjuntoARemover) { // Se estava editando o conjunto que foi removido
-        editandoConjuntoId = null;
-        btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
-        resetarConfiguracaoPizza(); // Limpa os campos de configuração
-        resetarSelecaoBebidas();
-    }
-    atualizarVisualizacaoCarrinho();
-}
-
-function carregarConjuntoParaEdicao(idConjunto) {
-    const conjuntoParaEditar = carrinho.find(c => c.idConjunto === idConjunto);
-    if (!conjuntoParaEditar) return;
-
-    // 1. Limpar seleções atuais nos formulários
-    resetarConfiguracaoPizza(); 
-    resetarSelecaoBebidas();
-
-    editandoConjuntoId = idConjunto; 
-
-    // 2. Popular formulários com dados do conjuntoParaEditar
-    const pizzaDoConjunto = conjuntoParaEditar.itensDoConjunto.find(item => item.tipo === 'pizza_configurada');
-    if (pizzaDoConjunto) {
-        // Marcar tamanho
-        const tamanhoOriginal = pizzaDoConjunto.componentesInternos.find(c => c.nome.startsWith('Tamanho '));
-        if (tamanhoOriginal) {
-            const radioTamanho = document.querySelector(`input[name="tamanho"][value="${tamanhoOriginal.preco}"]`);
-            if (radioTamanho) radioTamanho.checked = true;
-        }
-        
-        // Lidar com sabores
-        saborPizzaPrincipalAtualConfig = pizzaDoConjunto.configSaborOriginal; 
-        saborSelecionadoInput.value = saborPizzaPrincipalAtualConfig; // Define o input de display
-
-        if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
-            saborDuploOpcoesDiv.style.display = 'block';
-            pizzaDoConjunto.saboresIndividuaisOriginais.forEach(sabor => {
-                const checkboxSabor = document.querySelector(`.sabor-checkbox[value="${sabor.trim()}"]`);
-                if (checkboxSabor) checkboxSabor.checked = true;
-            });
-            // Atualiza o display dos sabores com base nos checkboxes marcados
-            let saboresAtuaisDisplay = [];
-            document.querySelectorAll('.sabor-checkbox:checked').forEach(s => saboresAtuaisDisplay.push(s.value));
-            saborSelecionadoInput.value = saboresAtuaisDisplay.length > 0 ? saboresAtuaisDisplay.join(' / ') : "Selecione os sabores";
-
-        } else { 
-            saborDuploOpcoesDiv.style.display = 'none';
-            saborCheckboxes.forEach(cb => cb.checked = false); // Garante que checkboxes de 2 sabores estejam limpos
-        }
-
-        // Marcar adicionais da pizza
-        pizzaDoConjunto.componentesInternos.forEach(comp => {
-            if (!comp.nome.startsWith('Tamanho ') && !comp.nome.startsWith('Sabor')) { 
-                const adicionalCheckbox = document.querySelector(`input[name="adicional_pizza"][data-nome="${comp.nome}"]`);
-                if (adicionalCheckbox) adicionalCheckbox.checked = true;
-            }
-        });
-    }
-
-    // Popular bebidas
-    conjuntoParaEditar.itensDoConjunto.filter(item => item.tipo === 'bebida').forEach(bebida => {
-        const bebidaCheckbox = document.querySelector(`input[name="bebida_selecao"][data-nome="${bebida.nomeDisplay}"]`);
-        if (bebidaCheckbox) bebidaCheckbox.checked = true;
-    });
-
-    // 3. Mudar texto do botão e garantir que esteja visível/habilitado
-    btnAdicionarSelecaoAoCarrinho.textContent = 'Atualizar Pedido no Carrinho';
-    // A função calcularTotalPedidoConfig será chamada e ajustará o display/disabled do botão.
-    calcularTotalPedidoConfig(); 
-
-    alert("Modifique sua seleção e clique em 'Atualizar Pedido no Carrinho'. O pedido original foi removido do carrinho para edição.");
-    orderOptionsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    modalCarrinhoOverlay.style.display = 'none'; // Fecha o modal para facilitar a edição
-}
-
-function removerItemIndividualDeConjunto(idConjunto, idItemARemover) {
-    const indexConjunto = carrinho.findIndex(c => c.idConjunto === idConjunto);
-    if (indexConjunto === -1) return; 
-
-    const conjunto = carrinho[indexConjunto];
-    const itensOriginaisCount = conjunto.itensDoConjunto.length;
-
-    conjunto.itensDoConjunto = conjunto.itensDoConjunto.filter(item => item.idItem !== idItemARemover);
-
-    if (conjunto.itensDoConjunto.length < itensOriginaisCount) { 
-        if (conjunto.itensDoConjunto.length === 0) {
-            carrinho.splice(indexConjunto, 1); 
-            if (editandoConjuntoId === idConjunto) { 
-                editandoConjuntoId = null;
+            if (editandoConjuntoId) { 
+                const indexExistente = carrinho.findIndex(c => c.idConjunto === editandoConjuntoId);
+                if (indexExistente > -1) {
+                    carrinho[indexExistente].itensDoConjunto = itensDesteConjunto;
+                    carrinho[indexExistente].subtotalConjunto = subtotalDesteConjunto;
+                    carrinho[indexExistente].atualizadoEm = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                } else { 
+                     const conjuntoEditadoFallback = {
+                        idConjunto: editandoConjuntoId, 
+                        itensDoConjunto: itensDesteConjunto,
+                        subtotalConjunto: subtotalDesteConjunto,
+                        adicionadoEm: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) 
+                    };
+                    carrinho.push(conjuntoEditadoFallback);
+                }
+                editandoConjuntoId = null; 
                 btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
-                resetarConfiguracaoPizza();
-                resetarSelecaoBebidas();
+            } else if (carrinho.length === 1 && !pizzaConfiguradaNestaAcao && bebidasAdicionadasNestaAcao) { 
+                const primeiroConjunto = carrinho[0];
+                itensDesteConjunto.forEach(itemNovo => { 
+                    primeiroConjunto.itensDoConjunto.push(itemNovo); 
+                    primeiroConjunto.subtotalConjunto += itemNovo.precoTotalItem; 
+                });
+                primeiroConjunto.adicionadoEm = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); 
+            } else { 
+                const novoConjunto = {
+                    idConjunto: 'conjunto_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    itensDoConjunto: itensDesteConjunto,
+                    subtotalConjunto: subtotalDesteConjunto,
+                    adicionadoEm: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                };
+                carrinho.push(novoConjunto);
             }
+            
+            atualizarVisualizacaoCarrinho();
+            if (pizzaConfiguradaNestaAcao) resetarConfiguracaoPizza(); 
+            if (bebidasAdicionadasNestaAcao) resetarSelecaoBebidas(); 
+        }
+    }
+
+    function aplicarCupom() {
+        const codigoCupom = inputCupom.value.trim().toUpperCase();
+        
+        if (codigoCupom === "") {
+            if (cupomAplicado) { 
+                 cupomMensagemDiv.textContent = "Cupom removido.";
+                 cupomMensagemDiv.style.color = "#777"; 
+            } else {
+                cupomMensagemDiv.textContent = ""; 
+            }
+            cupomAplicado = null; 
+            descontoAplicadoInfoDiv.style.display = 'none';
+        } else if (CUPONS_VALIDOS[codigoCupom]) {
+            cupomAplicado = { codigo: codigoCupom, ...CUPONS_VALIDOS[codigoCupom] };
+            cupomMensagemDiv.textContent = `Cupom "${codigoCupom}" aplicado: ${cupomAplicado.descricao}`;
+            cupomMensagemDiv.style.color = "green"; 
         } else {
-            // Recalcular o subtotal do conjunto
-            conjunto.subtotalConjunto = 0;
-            conjunto.itensDoConjunto.forEach(item => {
-                conjunto.subtotalConjunto += item.precoTotalItem;
-            });
+            cupomMensagemDiv.textContent = "Ops! Cupom inválido ou expirado.";
+            cupomMensagemDiv.style.color = "red"; 
+            cupomAplicado = null; 
+            descontoAplicadoInfoDiv.style.display = 'none';
         }
         atualizarVisualizacaoCarrinho(); 
     }
-}
 
-function atualizarVisualizacaoCarrinho() {
-    listaConjuntosCarrinhoDiv.innerHTML = '';
-    let totalGeralBruto = 0;
-    contadorCarrinhoSpan.textContent = carrinho.length;
+    function removerConjuntoDoCarrinho(idConjuntoARemover) {
+        carrinho = carrinho.filter(conjunto => conjunto.idConjunto !== idConjuntoARemover);
+        if (editandoConjuntoId === idConjuntoARemover) {
+            editandoConjuntoId = null;
+            btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
+            resetarConfiguracaoPizza();
+            resetarSelecaoBebidas();
+        }
+        atualizarVisualizacaoCarrinho();
+    }
 
-    if (carrinho.length === 0) {
-        carrinhoVazioMsg.style.display = 'block';
-    } else {
-        carrinhoVazioMsg.style.display = 'none';
-        carrinho.forEach((conjunto, index) => {
-            totalGeralBruto += conjunto.subtotalConjunto;
-            const divConjunto = document.createElement('div');
-            divConjunto.className = 'conjunto-no-carrinho item-carrinho-animado'; // Adiciona classe de animação
-            divConjunto.dataset.idConjunto = conjunto.idConjunto;
+    function carregarConjuntoParaEdicao(idConjunto) {
+        const conjuntoParaEditar = carrinho.find(c => c.idConjunto === idConjunto);
+        if (!conjuntoParaEditar) return;
 
-            const divCabecalho = document.createElement('div');
-            divCabecalho.className = 'conjunto-cabecalho';
+        resetarConfiguracaoPizza();
+        resetarSelecaoBebidas();
+        editandoConjuntoId = idConjunto; 
+
+        const pizzaDoConjunto = conjuntoParaEditar.itensDoConjunto.find(item => item.tipo === 'pizza_configurada');
+        if (pizzaDoConjunto) {
+            const tamanhoOriginal = pizzaDoConjunto.componentesInternos.find(c => c.nome.startsWith('Tamanho '));
+            if (tamanhoOriginal) {
+                const radioTamanho = document.querySelector(`input[name="tamanho"][value="${tamanhoOriginal.preco}"]`);
+                if (radioTamanho) radioTamanho.checked = true;
+            }
             
-            const tituloConjunto = document.createElement('strong');
-            tituloConjunto.textContent = `Pedido #${index + 1} (às ${conjunto.adicionadoEm || conjunto.atualizadoEm || ''})`;
-            
-            const subtotalSpan = document.createElement('span');
-            subtotalSpan.className = 'subtotal-conjunto';
-            subtotalSpan.textContent = `Subtotal: R$ ${conjunto.subtotalConjunto.toFixed(2).replace('.', ',')}`;
+            saborPizzaPrincipalAtualConfig = pizzaDoConjunto.configSaborOriginal; 
+            // saborSelecionadoInputDisplay.value = saborPizzaPrincipalAtualConfig; // REMOVIDO
 
-            const botoesDiv = document.createElement('div');
-            botoesDiv.className = 'botoes-conjunto';
+            if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
+                saborDuploOpcoesDiv.style.display = 'block';
+                pizzaDoConjunto.saboresIndividuaisOriginais.forEach(sabor => {
+                    const checkboxSabor = document.querySelector(`.sabor-checkbox[value="${sabor.trim()}"]`);
+                    if (checkboxSabor) checkboxSabor.checked = true;
+                });
+                // A atualização do display (se houvesse um) seria aqui
+            } else { 
+                saborDuploOpcoesDiv.style.display = 'none';
+                saborCheckboxes.forEach(cb => cb.checked = false);
+            }
 
-            const btnEditar = document.createElement('button');
-            btnEditar.className = 'btn-editar-conjunto';
-            btnEditar.textContent = 'Editar Pedido';
-            btnEditar.onclick = () => carregarConjuntoParaEdicao(conjunto.idConjunto);
-
-            const btnRemoverConj = document.createElement('button');
-            btnRemoverConj.className = 'btn-remover-conjunto';
-            btnRemoverConj.textContent = 'Remover Pedido';
-            btnRemoverConj.onclick = () => removerConjuntoDoCarrinho(conjunto.idConjunto);
-
-            botoesDiv.appendChild(btnEditar);
-            botoesDiv.appendChild(btnRemoverConj);
-
-            divCabecalho.appendChild(tituloConjunto);
-            divCabecalho.appendChild(subtotalSpan);
-            divCabecalho.appendChild(botoesDiv);
-            divConjunto.appendChild(divCabecalho);
-
-            const ulItens = document.createElement('ul');
-            ulItens.className = 'lista-itens-do-conjunto';
-            conjunto.itensDoConjunto.forEach(item => {
-                const li = document.createElement('li');
-                const nomeSpan = document.createElement('span');
-                nomeSpan.className = 'item-nome';
-                nomeSpan.textContent = item.nomeDisplay;
-                
-                const divPrecoERemover = document.createElement('div'); 
-                divPrecoERemover.style.display = 'flex';
-                divPrecoERemover.style.alignItems = 'center';
-
-                const precoSpan = document.createElement('span');
-                precoSpan.className = 'item-preco';
-                precoSpan.textContent = `R$ ${item.precoTotalItem.toFixed(2).replace('.', ',')}`;
-                
-                const btnRemoverItemInd = document.createElement('button'); 
-                btnRemoverItemInd.className = 'btn-remover-item-individual';
-                btnRemoverItemInd.innerHTML = '×'; // Caractere 'x' para remover
-                btnRemoverItemInd.title = `Remover ${item.nomeDisplay}`;
-                btnRemoverItemInd.onclick = () => removerItemIndividualDeConjunto(conjunto.idConjunto, item.idItem);
-
-                divPrecoERemover.appendChild(precoSpan);
-                divPrecoERemover.appendChild(btnRemoverItemInd);
-                
-                li.appendChild(nomeSpan);
-                li.appendChild(divPrecoERemover);
-                ulItens.appendChild(li);
+            pizzaDoConjunto.componentesInternos.forEach(comp => {
+                if (!comp.nome.startsWith('Tamanho ') && !comp.nome.startsWith('Sabor')) { 
+                    const adicionalCheckbox = document.querySelector(`input[name="adicional_pizza"][data-nome="${comp.nome}"]`);
+                    if (adicionalCheckbox) adicionalCheckbox.checked = true;
+                }
             });
-            divConjunto.appendChild(ulItens);
-            listaConjuntosCarrinhoDiv.appendChild(divConjunto);
+        }
+
+        conjuntoParaEditar.itensDoConjunto.filter(item => item.tipo === 'bebida').forEach(bebida => {
+            const bebidaCheckbox = document.querySelector(`input[name="bebida_selecao"][data-nome="${bebida.nomeDisplay}"]`);
+            if (bebidaCheckbox) bebidaCheckbox.checked = true;
         });
-    }
 
-    let totalFinal = totalGeralBruto;
-    let valorDescontoCalculado = 0;
-    descontoAplicadoInfoDiv.style.display = 'none'; 
-    descontoAplicadoInfoDiv.textContent = '';
+        btnAdicionarSelecaoAoCarrinho.textContent = 'Atualizar Pedido no Carrinho';
+        calcularTotalPedidoConfig(); 
 
-    if (cupomAplicado && totalGeralBruto > 0) {
-        if (cupomAplicado.tipo === "percentual") {
-            valorDescontoCalculado = (totalGeralBruto * cupomAplicado.valor) / 100;
-        } else if (cupomAplicado.tipo === "fixo") {
-            valorDescontoCalculado = cupomAplicado.valor;
-        }
-        valorDescontoCalculado = Math.min(valorDescontoCalculado, totalGeralBruto); 
-        totalFinal = totalGeralBruto - valorDescontoCalculado;
-        if (valorDescontoCalculado > 0) { 
-            descontoAplicadoInfoDiv.textContent = `Desconto (${cupomAplicado.codigo}): - R$ ${valorDescontoCalculado.toFixed(2).replace('.', ',')}`;
-            descontoAplicadoInfoDiv.style.display = 'block';
-        }
-    } else if (cupomAplicado && totalGeralBruto === 0) { 
-        // Se o carrinho esvaziou, mas havia um cupom, limpa o cupom
-        cupomAplicado = null; 
-        inputCupom.value = ''; 
-        cupomMensagemDiv.textContent = ''; 
+        alert("Modifique sua seleção e clique em 'Atualizar Pedido no Carrinho'.");
+        orderOptionsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        modalCarrinhoOverlay.classList.remove('visivel'); 
     }
     
-    totalPedidoModalDiv.innerText = `Total: R$ ${totalFinal.toFixed(2).replace('.', ',')}`;
+    function removerItemIndividualDeConjunto(idConjunto, idItemARemover) {
+        const indexConjunto = carrinho.findIndex(c => c.idConjunto === idConjunto);
+        if (indexConjunto === -1) return; 
 
-    // Salva o carrinho e o cupom aplicado no localStorage
-    localStorage.setItem('carrinhoPedidoPizza', JSON.stringify(carrinho));
-    if (cupomAplicado) {
-        localStorage.setItem('cupomAplicadoPedidoPizza', JSON.stringify(cupomAplicado));
-    } else {
-        localStorage.removeItem('cupomAplicadoPedidoPizza');
-    }
-}
+        const conjunto = carrinho[indexConjunto];
+        const itensOriginaisCount = conjunto.itensDoConjunto.length;
 
-function resetarConfiguracaoPizza() {
-    document.querySelectorAll('input[name="tamanho"]:checked').forEach(rb => rb.checked = false);
-    saborCheckboxes.forEach(cb => cb.checked = false);
-    adicionaisPizzaInputs.forEach(cb => cb.checked = false);
-    
-    saborPizzaPrincipalAtualConfig = saborPizzaPrincipalUrlOriginal; // Volta para o sabor da URL
-    if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
-        saborSelecionadoInput.value = "Selecione os sabores";
-        saborDuploOpcoesDiv.style.display = 'block';
-    } else {
-        saborSelecionadoInput.value = saborPizzaPrincipalAtualConfig;
-        saborDuploOpcoesDiv.style.display = 'none';
-    }
-    calcularTotalPedidoConfig(); // Atualiza o subtotal da configuração e o estado do botão Adicionar
-}
+        conjunto.itensDoConjunto = conjunto.itensDoConjunto.filter(item => item.idItem !== idItemARemover);
 
-function resetarSelecaoBebidas() {
-    bebidaSelecaoInputs.forEach(cb => cb.checked = false);
-    calcularTotalPedidoConfig(); // Atualiza o subtotal da configuração e o estado do botão Adicionar
-}
-    
-function enviarPedidoWhatsApp() {
-    if (orderOptionsDiv.style.display !== 'block' && carrinho.length === 0) { 
-        alert("Configure seu pedido e adicione itens ao carrinho antes de enviar."); 
-        if (orderOptionsDiv.style.display !== 'block') cepInput.focus();
-        return;
-    }
-    if (orderOptionsDiv.style.display === 'block' && carrinho.length === 0 && !editandoConjuntoId){
-            alert("Seu carrinho está vazio. Adicione itens antes de enviar o pedido."); return;
-    }
-
-    const camposEndereco = [
-        { input: logradouroInput, nome: "Rua/Avenida" }, { input: numeroInput, nome: "Número" },
-        { input: bairroInput, nome: "Bairro" }, { input: cidadeInput, nome: "Cidade" }, { input: ufInput, nome: "UF" }
-    ];
-    for (const campo of camposEndereco) {
-        if (!campo.input.value.trim()) {
-            alert(`Preencha o campo obrigatório de endereço: ${campo.nome}.`); 
-            campo.input.focus(); 
-            return;
-        }
-    }
-    
-    let mensagem = "🍕 *Novo Pedido de Pizza*\n\n";
-    let totalGeralBrutoParaMsg = 0;
-
-    carrinho.forEach((conjunto, index) => {
-        mensagem += `📦 *Pedido #${index + 1}* (às ${conjunto.adicionadoEm || conjunto.atualizadoEm || ''})\n`;
-        conjunto.itensDoConjunto.forEach(item => {
-            mensagem += `  ▪️ ${item.nomeDisplay} - R$ ${item.precoTotalItem.toFixed(2).replace('.', ',')}\n`;
-            if (item.tipo === 'pizza_configurada' && item.componentesInternos) {
-                item.componentesInternos.forEach(comp => {
-                    const nomeCompLimpo = comp.nome.replace("Sabores: ", "").replace("Sabor: ", "");
-                    if (!item.nomeDisplay.includes(nomeCompLimpo) &&
-                        !comp.nome.toLowerCase().startsWith("tamanho ") &&
-                        comp.preco > 0) {
-                        mensagem += `      ◦ ${comp.nome} (+ R$ ${comp.preco.toFixed(2).replace('.', ',')})\n`;
-                    }
+        if (conjunto.itensDoConjunto.length < itensOriginaisCount) { 
+            if (conjunto.itensDoConjunto.length === 0) {
+                carrinho.splice(indexConjunto, 1); 
+                if (editandoConjuntoId === idConjunto) { 
+                    editandoConjuntoId = null;
+                    btnAdicionarSelecaoAoCarrinho.textContent = 'Adicionar Seleção ao Carrinho';
+                    resetarConfiguracaoPizza();
+                    resetarSelecaoBebidas();
+                }
+            } else {
+                conjunto.subtotalConjunto = 0;
+                conjunto.itensDoConjunto.forEach(item => {
+                    conjunto.subtotalConjunto += item.precoTotalItem;
                 });
             }
-        });
-        mensagem += `   SUBTOTAL DO PEDIDO: R$ ${conjunto.subtotalConjunto.toFixed(2).replace('.', ',')}\n\n`;
-        totalGeralBrutoParaMsg += conjunto.subtotalConjunto;
-    });
-
-    if (cupomAplicado) {
-        let valorDescontoCalculadoMsg = 0;
-        if (cupomAplicado.tipo === "percentual") {
-            valorDescontoCalculadoMsg = (totalGeralBrutoParaMsg * cupomAplicado.valor) / 100;
-        } else if (cupomAplicado.tipo === "fixo") {
-            valorDescontoCalculadoMsg = cupomAplicado.valor;
-        }
-        valorDescontoCalculadoMsg = Math.min(valorDescontoCalculadoMsg, totalGeralBrutoParaMsg);
-        if (valorDescontoCalculadoMsg > 0) {
-            mensagem += `\n🎟️ Cupom Aplicado: *${cupomAplicado.codigo}*\n`;
-            mensagem += `💸 Desconto: *- R$ ${valorDescontoCalculadoMsg.toFixed(2).replace('.', ',')}*\n`;
+            atualizarVisualizacaoCarrinho(); 
         }
     }
-    
-    const rua = logradouroInput.value.trim();
-    const numero = numeroInput.value.trim();
-    const bairro = bairroInput.value.trim();
-    const cidade = cidadeInput.value.trim();
-    const uf = ufInput.value.trim();
-    const cepFormatado = cepInput.value.trim();
-    const enderecoCompletoParaMapa = `${rua}, ${numero}, ${bairro}, ${cidade}, ${uf}`;
-    const enderecoCodificado = encodeURIComponent(enderecoCompletoParaMapa);
-    const linkGoogleMaps = `https://maps.google.com/?q=${enderecoCodificado}`;
 
-    mensagem += `\n💰 *${totalPedidoModalDiv.innerText}*\n`; 
-    mensagem += `\n📍 *Endereço de Entrega:*\n`;
-    mensagem += `${rua}, ${numero}${complementoInput.value.trim() ? ' - ' + complementoInput.value.trim() : ''}\n`;
-    mensagem += `${bairro} - ${cidade}/${uf}\nCEP: ${cepFormatado}\n`;
-    mensagem += `\n🗺️ *Ver no Mapa:*\n${linkGoogleMaps}\n`;
+    function atualizarVisualizacaoCarrinho() {
+        listaConjuntosCarrinhoDiv.innerHTML = '';
+        let totalGeralBruto = 0;
+        contadorCarrinhoSpan.textContent = carrinho.length;
 
-    const numeroDestinoWhatsApp = "5562982714775";
-    window.open(`https://wa.me/${numeroDestinoWhatsApp}?text=${encodeURIComponent(mensagem)}`, "_blank");
-}
+        if (carrinho.length === 0) {
+            carrinhoVazioMsg.style.display = 'block';
+        } else {
+            carrinhoVazioMsg.style.display = 'none';
+            carrinho.forEach((conjunto, index) => {
+                totalGeralBruto += conjunto.subtotalConjunto;
+                const divConjunto = document.createElement('div');
+                divConjunto.className = 'conjunto-no-carrinho'; 
+                divConjunto.dataset.idConjunto = conjunto.idConjunto;
 
-// Event Listeners
-cepInput.addEventListener('input', () => {
-    let valNum = cepInput.value.replace(/\D/g, '');
-    cepInput.value = valNum.length > 5 ? valNum.slice(0, 5) + '-' + valNum.slice(5, 8) : valNum;
-    if (valNum.length === 8) {
-        verificarEntregaPorCep();
-    } else {
-        orderOptionsDiv.style.display = 'none';
-        mostrarResultadoEntrega("", "");
-        limparCamposEndereco();
-        btnAdicionarSelecaoAoCarrinho.style.display = 'none';
-        btnAdicionarSelecaoAoCarrinho.disabled = true;
-        iconeCarrinhoFlutuante.style.display = 'none';
-        atualizarVisualizacaoCarrinho();
-        calcularTotalPedidoConfig();
-    }
-});
+                const divCabecalho = document.createElement('div');
+                divCabecalho.className = 'conjunto-cabecalho';
+                
+                const tituloConjunto = document.createElement('strong');
+                tituloConjunto.textContent = `Pedido #${index + 1} (às ${conjunto.adicionadoEm || conjunto.atualizadoEm || ''})`;
+                
+                const subtotalSpan = document.createElement('span');
+                subtotalSpan.className = 'subtotal-conjunto';
+                subtotalSpan.textContent = `Subtotal: R$ ${conjunto.subtotalConjunto.toFixed(2).replace('.', ',')}`;
 
-tamanhoInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
+                const botoesDiv = document.createElement('div');
+                botoesDiv.className = 'botoes-conjunto';
+                const btnEditar = document.createElement('button');
+                btnEditar.className = 'btn-editar-conjunto';
+                btnEditar.textContent = 'Editar Pedido';
+                btnEditar.onclick = () => carregarConjuntoParaEdicao(conjunto.idConjunto);
+                const btnRemoverConj = document.createElement('button');
+                btnRemoverConj.className = 'btn-remover-conjunto';
+                btnRemoverConj.textContent = 'Remover Pedido';
+                btnRemoverConj.onclick = () => removerConjuntoDoCarrinho(conjunto.idConjunto);
+                botoesDiv.appendChild(btnEditar);
+                botoesDiv.appendChild(btnRemoverConj);
 
-adicionaisPizzaInputs.forEach(inputAdicional => { 
-    inputAdicional.addEventListener('change', () => {
-        const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
-        if (!tamanhoSelecionado && inputAdicional.checked && !editandoConjuntoId) {
-            alert("Por favor, selecione primeiro o tamanho da pizza para depois adicionar opcionais a ela.");
-            inputAdicional.checked = false; 
+                divCabecalho.appendChild(tituloConjunto);
+                divCabecalho.appendChild(subtotalSpan);
+                divCabecalho.appendChild(botoesDiv);
+                divConjunto.appendChild(divCabecalho);
+
+                // Lista os itens do conjunto diretamente, sem sub-categorias no modal
+                const ulItens = document.createElement('ul');
+                ulItens.className = 'lista-itens-do-conjunto'; 
+                conjunto.itensDoConjunto.forEach(item => {
+                    const li = document.createElement('li');
+                    li.classList.add('item-carrinho-animado'); // Para animação suave de itens no modal
+
+                    const nomeSpan = document.createElement('span');
+                    nomeSpan.className = 'item-nome';
+                    nomeSpan.textContent = item.nomeDisplay;
+                    
+                    const divPrecoERemover = document.createElement('div'); 
+                    divPrecoERemover.style.display = 'flex';
+                    divPrecoERemover.style.alignItems = 'center';
+
+                    const precoSpan = document.createElement('span');
+                    precoSpan.className = 'item-preco';
+                    precoSpan.textContent = `R$ ${item.precoTotalItem.toFixed(2).replace('.', ',')}`;
+                    
+                    const btnRemoverItemInd = document.createElement('button'); 
+                    btnRemoverItemInd.className = 'btn-remover-item-individual';
+                    btnRemoverItemInd.innerHTML = '×'; 
+                    btnRemoverItemInd.title = `Remover ${item.nomeDisplay}`;
+                    btnRemoverItemInd.onclick = () => removerItemIndividualDeConjunto(conjunto.idConjunto, item.idItem);
+
+                    divPrecoERemover.appendChild(precoSpan);
+                    divPrecoERemover.appendChild(btnRemoverItemInd);
+                    
+                    li.appendChild(nomeSpan);
+                    li.appendChild(divPrecoERemover);
+                    ulItens.appendChild(li);
+                });
+                divConjunto.appendChild(ulItens);
+                listaConjuntosCarrinhoDiv.appendChild(divConjunto);
+            });
         }
-        calcularTotalPedidoConfig(); 
-    });
-});
 
-bebidaSelecaoInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
+        let totalFinal = totalGeralBruto;
+        let valorDescontoCalculado = 0;
+        descontoAplicadoInfoDiv.style.display = 'none'; 
+        descontoAplicadoInfoDiv.textContent = '';
 
-saborCheckboxes.forEach(cb => {
-    cb.addEventListener('change', () => {
-        const selecionados = document.querySelectorAll('.sabor-checkbox:checked');
-        if (selecionados.length > 2) {
-            cb.checked = false; alert('Máximo de 2 sabores para a pizza atual.');
-        }
-        if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
-            let saboresAtuais = [];
-            document.querySelectorAll('.sabor-checkbox:checked').forEach(s => saboresAtuais.push(s.value));
-            saborSelecionadoInput.value = saboresAtuais.length > 0 ? saboresAtuais.join(' / ') : "Selecione os sabores";
-        }
-    });
-});
-
-btnAdicionarSelecaoAoCarrinho.addEventListener('click', adicionarSelecaoAtualAoCarrinho);
-btnWhatsappModal.addEventListener('click', enviarPedidoWhatsApp);
-btnAplicarCupom.addEventListener('click', aplicarCupom);
-btnContinuarComprando.addEventListener('click', () => {
-    modalCarrinhoOverlay.style.display = 'none';
-    orderOptionsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    resetarConfiguracaoPizza(); 
-    resetarSelecaoBebidas(); 
-});
-
-iconeCarrinhoFlutuante.addEventListener('click', () => {
-    modalCarrinhoOverlay.style.display = 'flex';
-    atualizarVisualizacaoCarrinho();
-});
-fecharModalBtn.addEventListener('click', () => {
-    modalCarrinhoOverlay.style.display = 'none';
-});
-modalCarrinhoOverlay.addEventListener('click', (event) => {
-    if (event.target === modalCarrinhoOverlay) {
-        modalCarrinhoOverlay.style.display = 'none';
-    }
-});
-
-window.addEventListener('DOMContentLoaded', () => {
-    // Recupera carrinho e cupom do localStorage
-    const carrinhoSalvo = localStorage.getItem('carrinhoPedidoPizza');
-    if (carrinhoSalvo) {
-        try {
-            const carrinhoParseado = JSON.parse(carrinhoSalvo);
-            if (Array.isArray(carrinhoParseado)) {
-                carrinho = carrinhoParseado;
-            } else {
-                localStorage.removeItem('carrinhoPedidoPizza');
+        if (cupomAplicado && totalGeralBruto > 0) {
+            if (cupomAplicado.tipo === "percentual") {
+                valorDescontoCalculado = (totalGeralBruto * cupomAplicado.valor) / 100;
+            } else if (cupomAplicado.tipo === "fixo") {
+                valorDescontoCalculado = cupomAplicado.valor;
             }
-        } catch (e) {
-            console.error("Erro ao carregar carrinho do localStorage:", e);
-            localStorage.removeItem('carrinhoPedidoPizza');
-        }
-    }
-
-    const cupomSalvo = localStorage.getItem('cupomAplicadoPedidoPizza');
-    if (cupomSalvo) {
-        try {
-            cupomAplicado = JSON.parse(cupomSalvo);
-            if (cupomAplicado && inputCupom && cupomAplicado.codigo) { 
-                 inputCupom.value = cupomAplicado.codigo;
-                 if (cupomMensagemDiv && CUPONS_VALIDOS && CUPONS_VALIDOS[cupomAplicado.codigo]) {
-                    cupomMensagemDiv.textContent = `Cupom "${cupomAplicado.codigo}" aplicado: ${CUPONS_VALIDOS[cupomAplicado.codigo].descricao}`;
-                    cupomMensagemDiv.style.color = "green";
-                 } else if (cupomMensagemDiv) { 
-                    cupomMensagemDiv.textContent = "Cupom salvo anteriormente é inválido.";
-                    cupomMensagemDiv.style.color = "red";
-                    cupomAplicado = null; 
-                    localStorage.removeItem('cupomAplicadoPedidoPizza');
-                 }
-            } else if (cupomAplicado && !cupomAplicado.codigo) { 
-                cupomAplicado = null;
-                localStorage.removeItem('cupomAplicadoPedidoPizza');
+            valorDescontoCalculado = Math.min(valorDescontoCalculado, totalGeralBruto); 
+            totalFinal = totalGeralBruto - valorDescontoCalculado;
+            if (valorDescontoCalculado > 0) { 
+                descontoAplicadoInfoDiv.textContent = `Desconto (${cupomAplicado.codigo}): - R$ ${valorDescontoCalculado.toFixed(2).replace('.', ',')}`;
+                descontoAplicadoInfoDiv.style.display = 'block';
             }
-        } catch (e) {
-            console.error("Erro ao carregar cupom do localStorage:", e);
-            cupomAplicado = null;
+        } else if (cupomAplicado && totalGeralBruto === 0) { 
+            cupomAplicado = null; 
+            inputCupom.value = ''; 
+            cupomMensagemDiv.textContent = ''; 
+        }
+        
+        totalPedidoModalDiv.innerText = `Total: R$ ${totalFinal.toFixed(2).replace('.', ',')}`;
+
+        localStorage.setItem('carrinhoPedidoPizza', JSON.stringify(carrinho));
+        if (cupomAplicado) {
+            localStorage.setItem('cupomAplicadoPedidoPizza', JSON.stringify(cupomAplicado));
+        } else {
             localStorage.removeItem('cupomAplicadoPedidoPizza');
         }
     }
+   
+    function enviarPedidoWhatsApp() {
+        if (orderOptionsDiv.style.display !== 'block' && carrinho.length === 0) { 
+            alert("Configure seu pedido e adicione itens ao carrinho antes de enviar."); 
+            if (orderOptionsDiv.style.display !== 'block') cepInput.focus();
+            return;
+        }
+        if (orderOptionsDiv.style.display === 'block' && carrinho.length === 0 && !editandoConjuntoId){
+                alert("Seu carrinho está vazio. Adicione itens antes de enviar o pedido."); return;
+        }
+        const camposEndereco = [
+            { input: logradouroInput, nome: "Rua/Avenida" }, { input: numeroInput, nome: "Número" },
+            { input: bairroInput, nome: "Bairro" }, { input: cidadeInput, nome: "Cidade" }, { input: ufInput, nome: "UF" }
+        ];
+        for (const campo of camposEndereco) {
+            if (!campo.input.value.trim()) {
+                alert(`Preencha o campo obrigatório de endereço: ${campo.nome}.`); 
+                campo.input.focus(); 
+                return;
+            }
+        }
+        
+        let mensagem = "🍕 *Novo Pedido de Pizza*\n\n";
+        let totalGeralBrutoParaMsg = 0;
 
-    // Configuração inicial de sabor
-    const paramsUrl = new URLSearchParams(window.location.search);
-    const saborQueryUrl = paramsUrl.get('sabor');
-    if (saborQueryUrl) {
-        saborPizzaPrincipalUrlOriginal = decodeURIComponent(saborQueryUrl);
-    } else {
-        saborPizzaPrincipalUrlOriginal = 'Mussarela';
+        carrinho.forEach((conjunto, index) => {
+            mensagem += `📦 *Pedido #${index + 1}* (às ${conjunto.adicionadoEm || conjunto.atualizadoEm || ''})\n`;
+            
+            const itensPorCategoriaMsg = {};
+            conjunto.itensDoConjunto.forEach(item => {
+                const categoria = item.categoria || 'Outros';
+                if (!itensPorCategoriaMsg[categoria]) {
+                    itensPorCategoriaMsg[categoria] = [];
+                }
+                itensPorCategoriaMsg[categoria].push(item);
+            });
+
+            const ordemCategoriasMsg = ['Pizzas', 'Bebidas', 'Outros']; 
+
+            ordemCategoriasMsg.forEach(nomeCat => {
+                if (itensPorCategoriaMsg[nomeCat] && itensPorCategoriaMsg[nomeCat].length > 0) {
+                    mensagem += `  *${nomeCat.toUpperCase()}*\n`;
+                    itensPorCategoriaMsg[nomeCat].forEach(item => {
+                        mensagem += `    ▪️ ${item.nomeDisplay} - R$ ${item.precoTotalItem.toFixed(2).replace('.', ',')}\n`;
+                        if (item.tipo === 'pizza_configurada' && item.componentesInternos) {
+                            item.componentesInternos.forEach(comp => {
+                                const nomeCompLimpo = comp.nome.replace("Sabores: ", "").replace("Sabor: ", "");
+                                if (!item.nomeDisplay.includes(nomeCompLimpo) &&
+                                    !comp.nome.toLowerCase().startsWith("tamanho ") &&
+                                    !comp.nome.toLowerCase().startsWith("sabores: ") && 
+                                    !comp.nome.toLowerCase().startsWith("sabor: ") &&  
+                                    comp.preco > 0) {
+                                    mensagem += `        ◦ ${comp.nome} (+ R$ ${comp.preco.toFixed(2).replace('.', ',')})\n`;
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+            mensagem += `   SUBTOTAL DO PEDIDO: R$ ${conjunto.subtotalConjunto.toFixed(2).replace('.', ',')}\n\n`;
+            totalGeralBrutoParaMsg += conjunto.subtotalConjunto;
+        });
+
+        if (cupomAplicado) {
+            let valorDescontoCalculadoMsg = 0;
+            if (cupomAplicado.tipo === "percentual") {
+                valorDescontoCalculadoMsg = (totalGeralBrutoParaMsg * cupomAplicado.valor) / 100;
+            } else if (cupomAplicado.tipo === "fixo") {
+                valorDescontoCalculadoMsg = cupomAplicado.valor;
+            }
+            valorDescontoCalculadoMsg = Math.min(valorDescontoCalculadoMsg, totalGeralBrutoParaMsg);
+            if (valorDescontoCalculadoMsg > 0) {
+                mensagem += `\n🎟️ Cupom Aplicado: *${cupomAplicado.codigo}*\n`;
+                mensagem += `💸 Desconto: *- R$ ${valorDescontoCalculadoMsg.toFixed(2).replace('.', ',')}*\n`;
+            }
+        }
+        
+        const rua = logradouroInput.value.trim();
+        const numero = numeroInput.value.trim();
+        const bairro = bairroInput.value.trim();
+        const cidade = cidadeInput.value.trim();
+        const uf = ufInput.value.trim();
+        const cepFormatado = cepInput.value.trim();
+        const enderecoCompletoParaMapa = `${rua}, ${numero}, ${bairro}, ${cidade}, ${uf}`;
+        const enderecoCodificado = encodeURIComponent(enderecoCompletoParaMapa);
+        const linkGoogleMaps = `https://maps.google.com/?q=${enderecoCodificado}`;
+
+        mensagem += `\n💰 *${totalPedidoModalDiv.innerText}*\n`; 
+        mensagem += `\n📍 *Endereço de Entrega:*\n`;
+        mensagem += `${rua}, ${numero}${complementoInput.value.trim() ? ' - ' + complementoInput.value.trim() : ''}\n`;
+        mensagem += `${bairro} - ${cidade}/${uf}\nCEP: ${cepFormatado}\n`;
+        mensagem += `\n🗺️ *Ver no Mapa:*\n${linkGoogleMaps}\n`;
+
+        const numeroDestinoWhatsApp = "5562982714775";
+        window.open(`https://wa.me/${numeroDestinoWhatsApp}?text=${encodeURIComponent(mensagem)}`, "_blank");
     }
-    saborPizzaPrincipalAtualConfig = saborPizzaPrincipalUrlOriginal;
-    if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
-        saborSelecionadoInput.value = "Selecione os sabores";
-        saborDuploOpcoesDiv.style.display = 'block';
-    } else {
-        saborSelecionadoInput.value = saborPizzaPrincipalAtualConfig;
-        saborDuploOpcoesDiv.style.display = 'none';
-    }
 
-    // Estado inicial dos botões e ícone
-    btnAdicionarSelecaoAoCarrinho.style.display = 'none';
-    btnAdicionarSelecaoAoCarrinho.disabled = true;
-    iconeCarrinhoFlutuante.style.display = 'none'; // Começa escondido
+    // --- Event Listeners ---
+    cepInput.addEventListener('input', () => {
+        let valNum = cepInput.value.replace(/\D/g, '');
+        cepInput.value = valNum.length > 5 ? valNum.slice(0, 5) + '-' + valNum.slice(5, 8) : valNum;
+        if (valNum.length === 8) {
+            verificarEntregaPorCep();
+        } else {
+            orderOptionsDiv.style.display = 'none';
+            mostrarResultadoEntrega("", "");
+            limparCamposEndereco();
+            btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+            btnAdicionarSelecaoAoCarrinho.disabled = true;
+            iconeCarrinhoFlutuante.style.display = 'none';
+            atualizarVisualizacaoCarrinho();
+            calcularTotalPedidoConfig();
+        }
+    });
 
-    atualizarVisualizacaoCarrinho(); // Atualiza com dados do localStorage
-    calcularTotalPedidoConfig();   // Calcula subtotal e ajusta botão "Adicionar"
+    tamanhoInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
+    
+    adicionaisPizzaInputs.forEach(inputAdicional => { 
+        inputAdicional.addEventListener('change', () => {
+            const tamanhoSelecionado = document.querySelector('input[name="tamanho"]:checked');
+            if (!tamanhoSelecionado && inputAdicional.checked && !editandoConjuntoId) {
+                alert("Por favor, selecione primeiro o tamanho da pizza para depois adicionar opcionais a ela.");
+                inputAdicional.checked = false; 
+            }
+            calcularTotalPedidoConfig(); 
+        });
+    });
 
-    // Se o CEP já foi verificado e as opções estão visíveis (ex: vindo de um 'voltar' do navegador com estado)
-    // e o carrinho tem itens, o ícone deve aparecer.
-    // A função verificarEntregaPorCep já lida com a visibilidade do ícone se chamada.
-    // Esta checagem adicional é para o caso de a página carregar e as opções já estiverem visíveis.
-    if (orderOptionsDiv.style.display === 'block') {
-        iconeCarrinhoFlutuante.style.display = 'flex';
-        // O estado do btnAdicionarSelecaoAoCarrinho é ajustado por calcularTotalPedidoConfig
-    }
-});
-// FIM DA PARTE 2 DO JAVASCRIPT
-</script>
+    bebidaSelecaoInputs.forEach(input => input.addEventListener('change', calcularTotalPedidoConfig));
 
-  </body>
+    saborCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            const selecionados = document.querySelectorAll('.sabor-checkbox:checked');
+            if (selecionados.length > 2) {
+                cb.checked = false; alert('Máximo de 2 sabores para a pizza atual.');
+            }
+            // A atualização do saborPizzaPrincipalAtualConfig para "2 sabores" ou sabor único
+            // acontece quando a URL é lida ou quando se edita um pedido.
+            // Este listener apenas garante a regra de 2 sabores.
+        });
+    });
+
+    btnAdicionarSelecaoAoCarrinho.addEventListener('click', adicionarSelecaoAtualAoCarrinho);
+    btnWhatsappModal.addEventListener('click', enviarPedidoWhatsApp);
+    btnAplicarCupom.addEventListener('click', aplicarCupom);
+
+    btnContinuarComprando.addEventListener('click', () => {
+        modalCarrinhoOverlay.classList.remove('visivel'); 
+        orderOptionsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!editandoConjuntoId){ // Só reseta se não estiver no meio de uma edição
+            resetarConfiguracaoPizza(); 
+            resetarSelecaoBebidas(); 
+        }
+        calcularTotalPedidoConfig(); // Garante que o botão de adicionar esteja no estado correto
+    });
+
+    iconeCarrinhoFlutuante.addEventListener('click', () => {
+        modalCarrinhoOverlay.style.display = 'flex'; 
+        setTimeout(() => { 
+            modalCarrinhoOverlay.classList.add('visivel');
+        }, 10); 
+        atualizarVisualizacaoCarrinho(); 
+    });
+
+    fecharModalBtn.addEventListener('click', () => {
+        modalCarrinhoOverlay.classList.remove('visivel');
+    });
+
+    modalCarrinhoOverlay.addEventListener('click', (event) => { 
+        if (event.target === modalCarrinhoOverlay) {
+            modalCarrinhoOverlay.classList.remove('visivel');
+        }
+    });
+
+    categoriaTitulos.forEach(titulo => {
+        titulo.addEventListener('click', () => {
+            const conteudo = titulo.nextElementSibling;
+            const seta = titulo.querySelector('.categoria-seta');
+            const estaAberto = titulo.classList.contains('aberto');
+
+            // Fecha todas as outras categorias abertas
+            if (!estaAberto) { // Só fecha outras se esta for ser aberta
+                categoriaTitulos.forEach(outroTitulo => {
+                    if (outroTitulo !== titulo) {
+                        const outroConteudo = outroTitulo.nextElementSibling;
+                        if (outroConteudo && outroConteudo.classList.contains('categoria-conteudo')) {
+                            outroConteudo.style.maxHeight = null;
+                            outroConteudo.classList.remove('visivel'); // Remove classe para padding
+                            outroTitulo.classList.remove('aberto');
+                            const outraSeta = outroTitulo.querySelector('.categoria-seta');
+                            if (outraSeta) outraSeta.style.transform = "rotate(0deg)";
+                        }
+                    }
+                });
+            }
+
+            if (conteudo && conteudo.classList.contains('categoria-conteudo')) {
+                if (estaAberto) {
+                    conteudo.style.maxHeight = null; 
+                    conteudo.classList.remove('visivel');
+                    if (seta) seta.style.transform = "rotate(0deg)";
+                    titulo.classList.remove('aberto');
+                } else {
+                    conteudo.classList.add('visivel'); // Adiciona classe para padding
+                    conteudo.style.maxHeight = conteudo.scrollHeight + "px"; 
+                    if (seta) seta.style.transform = "rotate(180deg)";
+                    titulo.classList.add('aberto');
+                }
+            }
+        });
+    });
+
+    // --- Inicialização da Página (DOMContentLoaded) ---
+    window.addEventListener('DOMContentLoaded', () => {
+        const carrinhoSalvo = localStorage.getItem('carrinhoPedidoPizza');
+        if (carrinhoSalvo) {
+            try {
+                const carrinhoParseado = JSON.parse(carrinhoSalvo);
+                if (Array.isArray(carrinhoParseado)) {
+                    carrinho = carrinhoParseado;
+                } else {
+                    localStorage.removeItem('carrinhoPedidoPizza');
+                }
+            } catch (e) {
+                console.error("Erro ao carregar carrinho do localStorage:", e);
+                localStorage.removeItem('carrinhoPedidoPizza');
+            }
+        }
+
+        const cupomSalvo = localStorage.getItem('cupomAplicadoPedidoPizza');
+        if (cupomSalvo) {
+            try {
+                cupomAplicado = JSON.parse(cupomSalvo);
+                if (cupomAplicado && inputCupom && cupomAplicado.codigo) { 
+                     inputCupom.value = cupomAplicado.codigo;
+                     if (cupomMensagemDiv && CUPONS_VALIDOS && CUPONS_VALIDOS[cupomAplicado.codigo]) {
+                        cupomMensagemDiv.textContent = `Cupom "${cupomAplicado.codigo}" aplicado: ${CUPONS_VALIDOS[cupomAplicado.codigo].descricao}`;
+                        cupomMensagemDiv.style.color = "green";
+                     } else if (cupomMensagemDiv) { 
+                        cupomAplicado = null; 
+                        localStorage.removeItem('cupomAplicadoPedidoPizza');
+                        inputCupom.value = ''; 
+                     }
+                } else if (cupomAplicado && !cupomAplicado.codigo) { 
+                    cupomAplicado = null;
+                    localStorage.removeItem('cupomAplicadoPedidoPizza');
+                }
+            } catch (e) {
+                console.error("Erro ao carregar cupom do localStorage:", e);
+                cupomAplicado = null;
+                localStorage.removeItem('cupomAplicadoPedidoPizza');
+            }
+        }
+
+        const paramsUrl = new URLSearchParams(window.location.search);
+        const saborQueryUrl = paramsUrl.get('sabor');
+        if (saborQueryUrl) {
+            saborPizzaPrincipalUrlOriginal = decodeURIComponent(saborQueryUrl);
+        } else {
+            saborPizzaPrincipalUrlOriginal = 'Mussarela'; 
+        }
+        saborPizzaPrincipalAtualConfig = saborPizzaPrincipalUrlOriginal;
+
+        if (saborPizzaPrincipalAtualConfig.toLowerCase() === '2 sabores') {
+            // saborSelecionadoInputDisplay.value = "Selecione os sabores"; // REMOVIDO
+            saborDuploOpcoesDiv.style.display = 'block';
+        } else {
+            // saborSelecionadoInputDisplay.value = saborPizzaPrincipalAtualConfig; // REMOVIDO
+            saborDuploOpcoesDiv.style.display = 'none';
+        }
+
+        btnAdicionarSelecaoAoCarrinho.style.display = 'none';
+        btnAdicionarSelecaoAoCarrinho.disabled = true;
+        iconeCarrinhoFlutuante.style.display = 'none'; 
+
+        atualizarVisualizacaoCarrinho(); 
+        calcularTotalPedidoConfig();   
+
+        if (orderOptionsDiv.style.display === 'block') {
+            iconeCarrinhoFlutuante.style.display = 'flex';
+        }
+    });
+  </script>
+</body>
 </html>
