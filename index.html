@@ -14,13 +14,13 @@
     }
     body {
       font-family: 'Poppins', sans-serif;
-      max-width: 650px; 
+      max-width: 600px; /* Max-width para o layout principal */
       margin: 30px auto;
-      padding: 25px;
+      padding: 20px;    /* Padding geral do corpo */
       background-color: #f8f9fa; 
       color: #343A40; 
       line-height: 1.65;
-      padding-bottom: 90px; 
+      padding-bottom: 90px; /* Espaço para o ícone do carrinho fixo */
     }
 
     /* --- TÍTULOS --- */
@@ -41,7 +41,7 @@
       padding-bottom: 12px;
     }
     /* Títulos para categorias de produtos e dentro de cards */
-    .categoria-titulo, .section-interna > h4, #modal-carrinho-conteudo h3 { /* Adicionado .section-interna > h4 */
+    .categoria-titulo, .section-interna > h4, #modal-carrinho-conteudo h3 { 
       color: #444;
       margin-top: 0;
       margin-bottom: 15px;
@@ -50,10 +50,10 @@
       padding-bottom: 8px;
       border-bottom: 1px solid #eee;
     }
-     #modal-carrinho-conteudo .modal-cabecalho h3 { /* Título do modal */
+     #modal-carrinho-conteudo .modal-cabecalho h3 { 
         color: #D9534F;
         font-size: 1.6em;
-        border-bottom: none; /* Remover borda do h3 dentro do .modal-cabecalho */
+        border-bottom: none; 
         padding-bottom: 0;
     }
 
@@ -73,7 +73,7 @@
       margin-bottom: 20px;
       box-shadow: 0 3px 10px rgba(0,0,0,0.06);
       border: 1px solid #f0f0f0;
-      overflow: hidden; /* Para conter bordas arredondadas do conteúdo */
+      overflow: hidden; 
     }
     .categoria-titulo {
       background-color: #f9f9f9;
@@ -82,13 +82,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #eee; /* Borda mesmo quando recolhido */
+      border-bottom: 1px solid #eee; 
       font-weight: 500;
       font-size: 1.15em;
       color: #333;
       transition: background-color 0.2s ease;
     }
-    .categoria-titulo.aberto {
+    .categoria-titulo.aberto { /* Mantém bordas superiores arredondadas quando aberto */
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
     }
@@ -108,14 +108,14 @@
         overflow: hidden; 
         transition: max-height 0.35s ease-out, padding-top 0.35s ease-out, padding-bottom 0.35s ease-out; 
         background-color: #fff;
-        border-top: none;
+        border-top: none; /* Garante que não haja borda dupla */
     }
     .categoria-conteudo.visivel { 
         padding-top: 15px;    
         padding-bottom: 20px; 
         /* max-height será definido dinamicamente via JavaScript */
     }
-    .section-interna { /* Para agrupar elementos dentro de um .categoria-conteudo */
+    .section-interna { 
         margin-top: 10px;
         padding-top: 10px;
         border-top: 1px dashed #f0f0f0;
@@ -201,9 +201,9 @@
 
     .botao-whatsapp { background-color: #25D366; color: white; margin-top: 25px; text-decoration: none !important; text-align:center;}
     .botao-whatsapp:hover { background-color: #1DAE54; }
-
-    /* --- INPUTS E DISPLAYS DE INFORMAÇÃO --- */
-    /* #sabor-selecionado-display foi removido */
+    
+    /* --- DISPLAYS DE INFORMAÇÃO --- */
+    /* #sabor-selecionado-display foi removido do HTML, portanto, seu CSS não é mais necessário */
     .endereco-section label { display: block; margin: 12px 0 5px 0; font-weight: 500; font-size: 0.95em; color: #495057; }
     .endereco-section input { width: 100%; padding: 12px 15px; border: 1px solid #ced4da; border-radius: 6px; background: #fff; font-size: 1em; box-sizing: border-box; color: #495057; transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;}
     .endereco-section input:focus { border-color: #D9534F; box-shadow: 0 0 0 0.15rem rgba(217, 83, 79, 0.2); outline: none; }
@@ -217,20 +217,34 @@
     #icone-carrinho-flutuante { position: fixed; bottom: 25px; right: 25px; background-color: #D9534F; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; transition: background-color 0.3s ease, transform 0.2s ease; }
     #icone-carrinho-flutuante:hover { background-color: #c0423c; transform: scale(1.08); }
     #contador-carrinho { position: absolute; top: -5px; right: -5px; background-color: #ffffff; color: #D9534F; font-size: 12px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #D9534F; }
-
+    
     @keyframes pulse-carrinho { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
     .carrinho-pulsando { animation: pulse-carrinho 0.6s ease-out; }
-    #modal-carrinho-conteudo { background-color: #fff; padding: 25px 30px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; transform: scale(0.95) translateY(15px); opacity: 0; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease-out; }
+
+    #modal-carrinho-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.65); z-index: 1001; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.25s ease-out, visibility 0s linear 0.25s; }
+    #modal-carrinho-overlay.visivel { opacity: 1; visibility: visible; transition-delay: 0s; }
+    #modal-carrinho-conteudo { 
+        background-color: #fff; padding: 25px 30px; border-radius: 12px; 
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15); 
+        width: 90%; max-width: 520px; 
+        max-height: 80vh; /* AJUSTADO para dar mais espaço ao teclado */
+        overflow-y: auto; position: relative; display: flex; flex-direction: column;
+        transform: scale(0.95) translateY(15px); opacity: 0; 
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease-out; 
+        padding-bottom: 30px; /* Padding extra no fundo do conteúdo do modal */
+    }
     #modal-carrinho-overlay.visivel #modal-carrinho-conteudo { transform: scale(1) translateY(0); opacity: 1; }
     .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
     /* .modal-cabecalho h3 já estilizado acima */
     .fechar-modal-btn { font-size: 30px; font-weight: 300; color: #aaa; background: none; border: none; cursor: pointer; padding: 0; line-height: 1; transition: color 0.2s ease-in-out; }
     .fechar-modal-btn:hover { color: #555; }
-
+    
+    /* Total da Configuração Atual (antes de adicionar ao carrinho) */
     #total-pedido-config-container { padding: 12px; margin: 18px 0; background-color: #f8f9fa; border-radius: 8px; text-align: right; font-size: 1.05em; border: 1px solid #eee; }
     #total-pedido-config-container strong { color: #343A40; font-weight: 500; }
     #total-pedido-config-valor { color: #D9534F; font-weight: 700; }
 
+    /* Cupom e Total no Modal */
     .cupom-container { margin-top: 20px; display: flex; align-items: stretch; gap: 10px; }
     .cupom-container input::placeholder { color: #bbb; }
     .cupom-container input[type="text"] { flex-grow: 1; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; color: #495057;}
@@ -241,6 +255,7 @@
     .desconto-info { font-size: 0.95em; color: #28a745; text-align: right; margin-top: 5px; margin-bottom: 10px; display: none; font-weight: 500; }
     #total-pedido-display-modal { font-size: 1.3em; font-weight: 700; padding-top: 18px; text-align: right; margin-top: 18px; color: #D9534F; border-top: 2px solid #D9534F; }
 
+    /* Itens e Conjuntos no Carrinho (Modal) */
     #lista-conjuntos-carrinho { flex-grow: 1; overflow-y: auto; margin-bottom: 15px; }
     .conjunto-no-carrinho { border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 18px; background-color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
     .conjunto-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #dee2e6; flex-wrap: wrap; }
@@ -251,7 +266,7 @@
     .botoes-conjunto button:hover { opacity: 0.8; }
     .btn-editar-conjunto { background-color: #f0f0f0; color: #555; border: 1px solid #ccc; }
     .btn-remover-conjunto { background-color: #f9dada; color: #D9534F; border: 1px solid #D9534F; }
-
+    
     .lista-itens-do-conjunto { list-style-type: none; padding-left: 0; font-size: 0.95em; }
     .lista-itens-do-conjunto li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; color: #444; border-bottom: 1px solid #f5f5f5; }
     .lista-itens-do-conjunto li:last-child { border-bottom: none; }
@@ -260,12 +275,9 @@
     .btn-remover-item-individual { background-color: transparent; color: #D9534F; border: none; padding: 0 5px; cursor: pointer; font-size: 1em; font-weight: bold; line-height: 1; margin-left: 10px; opacity: 0.6; transition: opacity 0.2s ease-in-out; }
     .btn-remover-item-individual:hover { color: #c0423c; opacity: 1; }
 
-.modal-rodape {
-   /* ... outras propriedades ... */
-   position: relative; /* Mudar para relative para respeitar o padding do conteúdo */
-   /* ... outras propriedades ... */
-}
-
+    .modal-rodape { margin-top: auto; padding-top: 20px; border-top: 1px solid #eee; }
+    
+    /* Feedback visual ao adicionar itens */
     #confirmacao-adicionado-pedido {
         position: fixed; 
         top: 50%;
@@ -345,15 +357,4 @@
       <h3 class="categoria-titulo clicavel">🥤 Bebidas <span class="categoria-seta">▼</span></h3>
       <div class="categoria-conteudo">
         <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Coca+2L" alt="Coca-Cola 2 Litros" class="product-image"><div class="option-details"><input type="checkbox" name="bebida_selecao" value="12" data-nome="Coca-Cola 2 Litros" data-id="beb_coca_2l" class="bebida-checkbox"> Coca-Cola 2 Litros</div><span class="option-price">R$ 12,00</span></label>
-        <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Coca+Lata" alt="Coca-Cola 350 ML" class="product-image"><div class="option-details"><input type="checkbox" name="bebida_selecao" value="5" data-nome="Coca-Cola 350 ML" data-id="beb_coca_350ml" class="bebida-checkbox"> Coca-Cola 350 ML</div><span class="option-price">R$ 5,00</span></label>
-      </div>
-    </div>
-
-    <div id="total-pedido-config-container">
-      <strong>Total da Configuração Atual: <span id="total-pedido-config-valor">R$ 0,00</span></strong>
-    </div>
-    <div id="confirmacao-adicionado-pedido" style="display:none;">Itens adicionados ao pedido!</div>
-    <button id="btnAdicionarSelecaoAoCarrinho" class="botao-primario" style="display: none; margin-top: 20px;">Adicionar ao Pedido</button>
-  </div>
-
-  <div id=
+        <label class="option"><img src="https://via.placeholder.com/50x50.png?text=Coca+Lata" alt="Coca-Cola
