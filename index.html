@@ -312,9 +312,13 @@
                 renderizarUltimosPedidos();
             }
 
-            function atualizarContadorCarrinho() { if(contadorCarrinhoHeaderEl) contadorCarrinhoHeaderEl.textContent = itensNoCarrinho; }
+            function atualizarContadorCarrinho() { 
+                console.log("Atualizando contador para:", itensNoCarrinho);
+                if(contadorCarrinhoHeaderEl) contadorCarrinhoHeaderEl.textContent = itensNoCarrinho;
+            }
             
             function mostrarPopup(mensagem, tipo = 'sucesso') {
+                console.log("Mostrando Popup:", mensagem, "Tipo:", tipo);
                 popupMensagemEl.textContent = mensagem;
                 popupEl.style.backgroundColor = tipo === 'erro' ? 'var(--cor-erro)' : tipo === 'aviso' ? 'var(--cor-aviso)' : 'var(--cor-sucesso)';
                 popupEl.classList.remove('escondido');
@@ -351,23 +355,29 @@
                 const cupomInfo = CUPONS_VALIDOS[codigoDigitado];
                 if (cupomInfo) { cupomAplicado = { ...cupomInfo, codigo: codigoDigitado }; cupomFeedbackEl.textContent = `Cupom "${codigoDigitado}" aplicado!`; cupomFeedbackEl.classList.add('sucesso'); inputCupomEl.value = ''; }
                 else { cupomAplicado = null; cupomFeedbackEl.textContent = "Cupom inválido."; cupomFeedbackEl.classList.add('erro'); }
-                renderizarCarrinhoModal(); salvarDadosClienteNoLocalStorage();
+                renderizarCarrinhoModal(); 
+                salvarDadosClienteNoLocalStorage();
             }
 
             function renderizarCarrinhoModal() {
+                console.log("[RENDERIZAR MODAL] Iniciando. Itens:", JSON.stringify(carrinhoItensDetalhes), "Cupom:", JSON.stringify(cupomAplicado));
                 itensCarrinhoListaModalEl.innerHTML = ''; 
                 let subTotalItens = 0;
                 descontoAplicadoInfoEl.textContent = '';
+
                 if (carrinhoItensDetalhes.length === 0) {
+                    console.log("[RENDERIZAR MODAL] Carrinho VAZIO.");
                     itensCarrinhoListaModalEl.innerHTML = '<p style="text-align: center; padding: 20px 0;">Seu carrinho está vazio!</p>';
                     totalPrecoCarrinhoModalEl.textContent = '0,00';
                     btnFinalizarPedidoWhatsAppModal.disabled = true; 
-                    cupomAplicado = null;
+                    cupomAplicado = null; 
                     descontoAplicadoInfoEl.textContent = ''; 
                     cupomFeedbackEl.textContent = '';
                     inputCupomEl.value = '';
+                    console.log("[RENDERIZAR MODAL] UI de carrinho vazio definida.");
                     return; 
                 }
+
                 btnFinalizarPedidoWhatsAppModal.disabled = false;
                 carrinhoItensDetalhes.forEach((item, index) => {
                     const itemDiv = document.createElement('div'); itemDiv.classList.add('item-carrinho');
@@ -375,6 +385,7 @@
                     itemDiv.innerHTML = `<span class="item-carrinho-nome" title="${item.nome}">${item.nome}</span><div class="item-carrinho-qtd-controle"><button class="btn-qtd" onclick="diminuirQuantidade(${index})">-</button><span class="qtd-valor">${item.quantidade}</span><button class="btn-qtd" onclick="aumentarQuantidade(${index})">+</button></div><span class="item-carrinho-preco">R$ ${formatarPreco(precoTotalItem)}</span><button class="item-carrinho-remover" data-index="${index}" title="Remover ${item.nome}">×</button>`;
                     itensCarrinhoListaModalEl.appendChild(itemDiv);
                 });
+
                 let valorDescontoFinal = 0;
                 if (cupomAplicado) {
                     if (cupomAplicado.tipo === "percentual") valorDescontoFinal = (subTotalItens * cupomAplicado.valor) / 100;
@@ -382,7 +393,9 @@
                     valorDescontoFinal = Math.min(valorDescontoFinal, subTotalItens); 
                     descontoAplicadoInfoEl.textContent = `Desconto (${cupomAplicado.codigo}): - R$ ${formatarPreco(valorDescontoFinal)}`;
                 }
+                
                 const totalGeral = subTotalItens - valorDescontoFinal;
+                console.log("[RENDERIZAR MODAL] Subtotal:", subTotalItens, "Desconto:", valorDescontoFinal, "Total Geral:", totalGeral);
                 totalPrecoCarrinhoModalEl.textContent = formatarPreco(totalGeral < 0 ? 0 : totalGeral);
                 document.querySelectorAll('#modal-carrinho .item-carrinho-remover').forEach(botao => { botao.addEventListener('click', (event) => { removerItemDoCarrinho(parseInt(event.target.dataset.index)); }); });
             }
@@ -399,9 +412,16 @@
             window.limparCarrinhoCompleto = function() {
                 if (carrinhoItensDetalhes.length === 0) { mostrarPopup("O carrinho já está vazio.", "aviso"); return;}
                 if (confirm("Tem certeza que deseja limpar todos os itens do carrinho?")) {
-                    carrinhoItensDetalhes = []; itensNoCarrinho = 0; cupomAplicado = null; 
-                    inputCupomEl.value = ''; cupomFeedbackEl.textContent = ''; descontoAplicadoInfoEl.textContent = '';
-                    atualizarEsalvarCarrinho(); 
+                    carrinhoItensDetalhes = []; 
+                    itensNoCarrinho = 0; 
+                    cupomAplicado = null; 
+                    inputCupomEl.value = ''; 
+                    cupomFeedbackEl.textContent = ''; 
+                    descontoAplicadoInfoEl.textContent = '';
+                    
+                    atualizarContadorCarrinho(); 
+                    renderizarCarrinhoModal(); 
+                    salvarDadosClienteNoLocalStorage(); 
                     mostrarPopup("Carrinho limpo com sucesso!", "sucesso");
                 }
             }
@@ -419,6 +439,10 @@
                         precoEl.textContent = `R$ ${formatarPreco(precoUnitario * qtdAtual)}`;
                     }
                 }
+                if(precoEl && !isNaN(precoUnitario)){ // Define preço inicial com base na quantidade 1
+                    precoEl.textContent = `R$ ${formatarPreco(precoUnitario * parseInt(inputQtd.value))}`;
+                }
+
 
                 if (btnMenos && btnMais && inputQtd) {
                     btnMenos.addEventListener('click', () => { let qtdAtual = parseInt(inputQtd.value); if (qtdAtual > 1) {inputQtd.value = qtdAtual - 1; atualizarPrecoCard();} });
@@ -430,9 +454,9 @@
                 botao.addEventListener('click', (event) => {
                     const produtoDiv = event.target.closest('.produto');
                     const nomeProduto = produtoDiv.dataset.nome;
-                    const precoProduto = parseFloat(produtoDiv.dataset.preco); // Preço unitário
+                    const precoProduto = parseFloat(produtoDiv.dataset.preco); 
                     const inputQtdProdutoEl = produtoDiv.querySelector('.input-qtd-produto');
-                    const precoElOriginal = produtoDiv.querySelector('.preco');
+                    const precoElOriginalDisplay = produtoDiv.querySelector('.preco');
                     const quantidadeSelecionada = parseInt(inputQtdProdutoEl.value);
 
                     if (isNaN(quantidadeSelecionada) || quantidadeSelecionada < 1) { mostrarPopup("Quantidade inválida.", 'erro'); return; }
@@ -445,8 +469,9 @@
                     atualizarContadorCarrinho();
                     mostrarPopup(`"${nomeProduto}" (${quantidadeSelecionada}x) adicionado!`);
                     salvarDadosClienteNoLocalStorage();
+                    
                     inputQtdProdutoEl.value = 1; 
-                    if (precoElOriginal && !isNaN(precoProduto)) { precoElOriginal.textContent = `R$ ${formatarPreco(precoProduto)}`;} // Reseta preço do card para unitário
+                    if (precoElOriginalDisplay && !isNaN(precoProduto)) { precoElOriginalDisplay.textContent = `R$ ${formatarPreco(precoProduto)}`;}
                 });
             });
             
@@ -540,7 +565,9 @@
                 const numeroWhatsApp = "556292714775"; const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`; window.open(urlWhatsApp, '_blank');
                 
                 carrinhoItensDetalhes = []; itensNoCarrinho = 0; cupomAplicado = null; inputCupomEl.value = ''; cupomFeedbackEl.textContent = ''; descontoAplicadoInfoEl.textContent = '';
-                atualizarContadorCarrinho(); renderizarCarrinhoModal(); fecharModalCarrinho(); 
+                atualizarContadorCarrinho(); 
+                renderizarCarrinhoModal(); 
+                fecharModalCarrinho(); 
                 salvarDadosClienteNoLocalStorage();
                 mostrarPopup("Pedido enviado para WhatsApp! ✅");
             });
