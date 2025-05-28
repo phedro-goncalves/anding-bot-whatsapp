@@ -87,12 +87,20 @@
         .item-carrinho-preco { font-weight: 600; min-width: 65px; text-align: right; flex-basis: 20%; }
         .item-carrinho-remover { background-color: #ffebee; color: var(--cor-erro); border: 1px solid #ffcdd2; border-radius: 50%; width: 26px; height: 26px; line-height: 24px; text-align: center; cursor: pointer; font-size: 1.1rem; margin-left: 8px; transition: background-color 0.2s; }
         .item-carrinho-remover:hover { background-color: #ffcdd2; }
-        .cupom-container { padding: 1rem 1.5rem 0; display: flex; gap: 0.5rem; align-items: center; }
+        
+        .cupom-container { padding: 1rem 1.5rem 0.5rem; display: flex; gap: 0.5rem; align-items: center; }
         .cupom-container input[type="text"] { flex-grow: 1; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px; font-family: 'Poppins'; }
         .cupom-container button { padding: 0.6rem 1rem; background-color: var(--cor-destaque); color: white; border:none; border-radius:4px; cursor:pointer; }
-        #cupom-feedback { font-size: 0.85rem; margin-top: 0.5rem; padding: 0 1.5rem; min-height: 1.2em; }
+        #cupom-feedback { font-size: 0.85rem; padding: 0 1.5rem 0.5rem; min-height: 1.2em; }
         #cupom-feedback.sucesso { color: var(--cor-sucesso); } #cupom-feedback.erro { color: var(--cor-erro); } #cupom-feedback.aviso {color: var(--cor-aviso);}
-        .desconto-info { font-size: 0.9rem; color: var(--cor-sucesso); text-align: right; padding-right: 1.5rem;}
+        .desconto-info { font-size: 0.9rem; color: var(--cor-sucesso); text-align: right; padding: 0 1.5rem 0.5rem; }
+        
+        .forma-pagamento-container { padding: 0 1.5rem 1rem; border-top: 1px solid #f0f0f0; margin-top: 1rem; }
+        .forma-pagamento-container h4 { margin: 1rem 0 0.5rem; font-size: 1rem; color: var(--cor-texto); text-align: left; }
+        .forma-pagamento-container select, .forma-pagamento-container input[type="text"] {
+            width: 100%; padding: 0.7rem; border-radius: 4px; border: 1px solid #ddd; font-family: 'Poppins'; font-size: 0.9rem; margin-bottom: 0.5rem;
+        }
+        
         .modal-footer { padding: 1.5rem; border-top: 1px solid #eee; background-color: #fdfdfd; }
         #carrinho-total-modal { text-align: right; font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--cor-texto); }
         #carrinho-total-modal span { color: var(--cor-destaque); }
@@ -229,8 +237,22 @@
     <div id="modal-carrinho" class="escondido">
         <div class="modal-header"> <h2>🛒 Seu Carrinho</h2> <button class="fechar-modal" onclick="fecharModalCarrinho()" title="Fechar carrinho">×</button> </div>
         <div id="itens-carrinho-lista-modal"> <p style="text-align: center; padding: 20px 0;">Seu carrinho está vazio.</p> </div>
+        
         <div class="cupom-container"> <input type="text" id="input-cupom" placeholder="Código do cupom"> <button id="btn-aplicar-cupom" onclick="aplicarCupom()">Aplicar</button> </div>
         <p id="cupom-feedback"></p> <p class="desconto-info" id="desconto-aplicado-info"></p>
+        
+        <div class="forma-pagamento-container">
+            <h4>Forma de Pagamento: *</h4>
+            <select id="forma-pagamento-select">
+                <option value="">Selecione...</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="CartaoCredito">Cartão de Crédito</option>
+                <option value="CartaoDebito">Cartão de Débito</option>
+                <option value="PIX">PIX</option>
+            </select>
+            <input type="text" id="troco-para" class="escondido" placeholder="Troco para R$ (ex: 50,00)">
+        </div>
+
         <div class="modal-footer">
             <div id="carrinho-total-modal"> <strong>Total: R$ <span id="total-preco-carrinho-modal">0,00</span></strong> </div>
             <div class="carrinho-acoes-modal">
@@ -273,6 +295,9 @@
             const descontoAplicadoInfoEl = document.getElementById('desconto-aplicado-info');
             const listaUltimosPedidosContainerEl = document.getElementById('lista-ultimos-pedidos-container');
             const semPedidosAnterioresEl = document.getElementById('sem-pedidos-anteriores');
+            const formaPagamentoSelectEl = document.getElementById('forma-pagamento-select');
+            const trocoParaEl = document.getElementById('troco-para');
+
 
             let itensNoCarrinho = 0; 
             let carrinhoItensDetalhes = []; 
@@ -281,6 +306,8 @@
             let cupomAplicado = null;
             let ultimosPedidos = [];
             const MAX_ULTIMOS_PEDIDOS = 3;
+            let formaPagamentoSelecionada = '';
+
 
             const CUPONS_VALIDOS = { "SORVETE10": { tipo: "percentual", valor: 10 }, "OFF5": { tipo: "fixo", valor: 5 }, "CLIENTEVIP": { tipo: "percentual", valor: 15 } };
             
@@ -291,6 +318,9 @@
                 if (enderecoEntregaInfo) localStorage.setItem('sorveteriaEnderecoEntrega', enderecoEntregaInfo); else localStorage.removeItem('sorveteriaEnderecoEntrega');
                 if (cupomAplicado) localStorage.setItem('sorveteriaCupomAplicado', JSON.stringify(cupomAplicado)); else localStorage.removeItem('sorveteriaCupomAplicado');
                 localStorage.setItem('sorveteriaUltimosPedidos', JSON.stringify(ultimosPedidos));
+                if (formaPagamentoSelecionada) localStorage.setItem('sorveteriaFormaPagamento', formaPagamentoSelecionada); else localStorage.removeItem('sorveteriaFormaPagamento');
+                if (formaPagamentoSelecionada === 'Dinheiro' && trocoParaEl.value.trim()) localStorage.setItem('sorveteriaTrocoPara', trocoParaEl.value.trim()); else localStorage.removeItem('sorveteriaTrocoPara');
+
             }
 
             function carregarDadosDoLocalStorage() {
@@ -300,6 +330,9 @@
                 const enderecoSalvo = localStorage.getItem('sorveteriaEnderecoEntrega');
                 const cupomSalvo = localStorage.getItem('sorveteriaCupomAplicado');
                 const ultimosPedidosSalvos = localStorage.getItem('sorveteriaUltimosPedidos');
+                const formaPagamentoSalva = localStorage.getItem('sorveteriaFormaPagamento');
+                const trocoParaSalvo = localStorage.getItem('sorveteriaTrocoPara');
+
 
                 if (carrinhoSalvo) carrinhoItensDetalhes = JSON.parse(carrinhoSalvo);
                 if (itensNoCarrinhoSalvo) itensNoCarrinho = parseInt(itensNoCarrinhoSalvo, 10) || 0;
@@ -307,18 +340,24 @@
                 if (enderecoSalvo) { enderecoEntregaInfo = enderecoSalvo; enderecoConfirmadoMsgEl.textContent = "Usaremos o último nome e endereço informados."; enderecoConfirmadoMsgEl.style.display = 'block'; }
                 if (cupomSalvo) cupomAplicado = JSON.parse(cupomSalvo);
                 if (ultimosPedidosSalvos) ultimosPedidos = JSON.parse(ultimosPedidosSalvos);
+                if (formaPagamentoSalva) {
+                    formaPagamentoSelectEl.value = formaPagamentoSalva;
+                    formaPagamentoSelecionada = formaPagamentoSalva;
+                    trocoParaEl.classList.toggle('escondido', formaPagamentoSalva !== 'Dinheiro');
+                    if (formaPagamentoSalva === 'Dinheiro' && trocoParaSalvo) {
+                        trocoParaEl.value = trocoParaSalvo;
+                    }
+                }
                 
                 atualizarContadorCarrinho();
                 renderizarUltimosPedidos();
             }
 
             function atualizarContadorCarrinho() { 
-                console.log("Atualizando contador para:", itensNoCarrinho);
                 if(contadorCarrinhoHeaderEl) contadorCarrinhoHeaderEl.textContent = itensNoCarrinho;
             }
             
             function mostrarPopup(mensagem, tipo = 'sucesso') {
-                console.log("Mostrando Popup:", mensagem, "Tipo:", tipo);
                 popupMensagemEl.textContent = mensagem;
                 popupEl.style.backgroundColor = tipo === 'erro' ? 'var(--cor-erro)' : tipo === 'aviso' ? 'var(--cor-aviso)' : 'var(--cor-sucesso)';
                 popupEl.classList.remove('escondido');
@@ -360,13 +399,11 @@
             }
 
             function renderizarCarrinhoModal() {
-                console.log("[RENDERIZAR MODAL] Iniciando. Itens:", JSON.stringify(carrinhoItensDetalhes), "Cupom:", JSON.stringify(cupomAplicado));
                 itensCarrinhoListaModalEl.innerHTML = ''; 
                 let subTotalItens = 0;
                 descontoAplicadoInfoEl.textContent = '';
 
                 if (carrinhoItensDetalhes.length === 0) {
-                    console.log("[RENDERIZAR MODAL] Carrinho VAZIO.");
                     itensCarrinhoListaModalEl.innerHTML = '<p style="text-align: center; padding: 20px 0;">Seu carrinho está vazio!</p>';
                     totalPrecoCarrinhoModalEl.textContent = '0,00';
                     btnFinalizarPedidoWhatsAppModal.disabled = true; 
@@ -374,7 +411,6 @@
                     descontoAplicadoInfoEl.textContent = ''; 
                     cupomFeedbackEl.textContent = '';
                     inputCupomEl.value = '';
-                    console.log("[RENDERIZAR MODAL] UI de carrinho vazio definida.");
                     return; 
                 }
 
@@ -395,7 +431,6 @@
                 }
                 
                 const totalGeral = subTotalItens - valorDescontoFinal;
-                console.log("[RENDERIZAR MODAL] Subtotal:", subTotalItens, "Desconto:", valorDescontoFinal, "Total Geral:", totalGeral);
                 totalPrecoCarrinhoModalEl.textContent = formatarPreco(totalGeral < 0 ? 0 : totalGeral);
                 document.querySelectorAll('#modal-carrinho .item-carrinho-remover').forEach(botao => { botao.addEventListener('click', (event) => { removerItemDoCarrinho(parseInt(event.target.dataset.index)); }); });
             }
@@ -418,6 +453,10 @@
                     inputCupomEl.value = ''; 
                     cupomFeedbackEl.textContent = ''; 
                     descontoAplicadoInfoEl.textContent = '';
+                    formaPagamentoSelectEl.value = '';
+                    trocoParaEl.value = '';
+                    trocoParaEl.classList.add('escondido');
+                    formaPagamentoSelecionada = '';
                     
                     atualizarContadorCarrinho(); 
                     renderizarCarrinhoModal(); 
@@ -439,10 +478,9 @@
                         precoEl.textContent = `R$ ${formatarPreco(precoUnitario * qtdAtual)}`;
                     }
                 }
-                if(precoEl && !isNaN(precoUnitario)){ // Define preço inicial com base na quantidade 1
-                    precoEl.textContent = `R$ ${formatarPreco(precoUnitario * parseInt(inputQtd.value))}`;
+                if(precoEl && !isNaN(precoUnitario) && inputQtd){ 
+                    atualizarPrecoCard(); 
                 }
-
 
                 if (btnMenos && btnMais && inputQtd) {
                     btnMenos.addEventListener('click', () => { let qtdAtual = parseInt(inputQtd.value); if (qtdAtual > 1) {inputQtd.value = qtdAtual - 1; atualizarPrecoCard();} });
@@ -499,6 +537,17 @@
             }
             if (cepInputEl) cepInputEl.addEventListener('keypress', function(event) { if (event.key === 'Enter') { event.preventDefault(); validarEPreencherEndereco(); } });
             
+            if(formaPagamentoSelectEl) {
+                formaPagamentoSelectEl.addEventListener('change', function() {
+                    formaPagamentoSelecionada = this.value;
+                    trocoParaEl.classList.toggle('escondido', this.value !== 'Dinheiro');
+                    if (this.value !== 'Dinheiro') {
+                        trocoParaEl.value = '';
+                    }
+                    salvarDadosClienteNoLocalStorage();
+                });
+            }
+
             function salvarPedidoAtualComoUltimo() {
                 if (carrinhoItensDetalhes.length === 0) return;
                 let subTotalItens = 0; carrinhoItensDetalhes.forEach(item => subTotalItens += item.preco * item.quantidade);
@@ -509,7 +558,7 @@
                     valorDescontoFinal = Math.min(valorDescontoFinal, subTotalItens);
                 }
                 const totalComDesconto = subTotalItens - valorDescontoFinal;
-                const pedidoAtual = { id: new Date().getTime(), itens: JSON.parse(JSON.stringify(carrinhoItensDetalhes)), totalPago: totalComDesconto < 0 ? 0 : totalComDesconto, cupomUsado: cupomAplicado ? cupomAplicado.codigo : null, data: new Date().toLocaleDateString('pt-BR'), nomeCliente: clienteNomeEl.value.trim(), endereco: enderecoEntregaInfo };
+                const pedidoAtual = { id: new Date().getTime(), itens: JSON.parse(JSON.stringify(carrinhoItensDetalhes)), totalPago: totalComDesconto < 0 ? 0 : totalComDesconto, cupomUsado: cupomAplicado ? cupomAplicado.codigo : null, data: new Date().toLocaleDateString('pt-BR'), nomeCliente: clienteNomeEl.value.trim(), endereco: enderecoEntregaInfo, formaPagamento: formaPagamentoSelecionada, troco: trocoParaEl.value.trim() };
                 ultimosPedidos.unshift(pedidoAtual); 
                 if (ultimosPedidos.length > MAX_ULTIMOS_PEDIDOS) ultimosPedidos.pop();
                 renderizarUltimosPedidos();
@@ -538,6 +587,22 @@
                 if (pedidoParaRepetir.endereco) { enderecoEntregaInfo = pedidoParaRepetir.endereco; enderecoConfirmadoMsgEl.textContent = "Nome e endereço do pedido anterior carregados."; enderecoConfirmadoMsgEl.style.display = 'block'; } 
                 else { enderecoEntregaInfo = null; }
                 cupomAplicado = null; inputCupomEl.value = ''; cupomFeedbackEl.textContent = ''; descontoAplicadoInfoEl.textContent = '';
+                // Restaurar forma de pagamento do pedido anterior, se disponível
+                if(pedidoParaRepetir.formaPagamento) {
+                    formaPagamentoSelectEl.value = pedidoParaRepetir.formaPagamento;
+                    formaPagamentoSelecionada = pedidoParaRepetir.formaPagamento;
+                    trocoParaEl.classList.toggle('escondido', formaPagamentoSelecionada !== 'Dinheiro');
+                    if (formaPagamentoSelecionada === 'Dinheiro' && pedidoParaRepetir.troco) {
+                        trocoParaEl.value = pedidoParaRepetir.troco;
+                    } else {
+                        trocoParaEl.value = '';
+                    }
+                } else {
+                    formaPagamentoSelectEl.value = '';
+                    formaPagamentoSelecionada = '';
+                    trocoParaEl.classList.add('escondido');
+                    trocoParaEl.value = '';
+                }
                 atualizarEsalvarCarrinho();
                 mostrarPopup("Itens do pedido anterior adicionados ao carrinho!", 'sucesso');
                 abrirModalCarrinho();
@@ -548,7 +613,13 @@
                 if (!nomeCliente) { alert("Informe seu nome completo."); clienteNomeEl.focus(); return; }
                 if (carrinhoItensDetalhes.length === 0) { alert("Carrinho vazio!"); return; }
                 if (!enderecoEntregaInfo) { alert("Confirme o endereço."); document.getElementById('cep-section').scrollIntoView({ behavior: 'smooth' }); cepInputEl.focus(); return; }
-                
+                if (!formaPagamentoSelecionada) { alert("Selecione uma forma de pagamento."); formaPagamentoSelectEl.focus(); return; }
+                if (formaPagamentoSelecionada === 'Dinheiro' && !trocoParaEl.value.trim() && !confirm("Você selecionou pagamento em Dinheiro, mas não informou o valor para troco. Deseja continuar assim mesmo?")) {
+                    trocoParaEl.focus();
+                    return;
+                }
+
+
                 salvarPedidoAtualComoUltimo(); 
 
                 let mensagem = `🍦 *Pedido Sorveteria Delícia* 🍦\n\n*Cliente:* ${nomeCliente}\n\nOlá! Gostaria de fazer o seguinte pedido:\n\n`;
@@ -561,10 +632,31 @@
                     mensagem += `Subtotal: R$ ${formatarPreco(subTotalItens)}\nDesconto (${cupomAplicado.codigo}): - R$ ${formatarPreco(valorDescontoFinal)}\n`;
                 }
                 carrinhoItensDetalhes.forEach(item => { mensagem += `*${item.nome}*\n  Qtd: ${item.quantidade}\n  Subtotal Item: R$ ${formatarPreco(item.preco * item.quantidade)}\n\n`; });
-                mensagem += `*TOTAL DO PEDIDO: R$ ${formatarPreco(totalComDesconto < 0 ? 0 : totalComDesconto)}*\n\n*ENDEREÇO PARA ENTREGA:*\n${enderecoEntregaInfo}\n\nPor favor, informe a *forma de pagamento*.\nObrigado(a)! 😊`;
+                mensagem += `*TOTAL DO PEDIDO: R$ ${formatarPreco(totalComDesconto < 0 ? 0 : totalComDesconto)}*\n\n`;
+                
+                mensagem += `*FORMA DE PAGAMENTO:* ${formaPagamentoSelectEl.options[formaPagamentoSelectEl.selectedIndex].text}\n`;
+                if (formaPagamentoSelecionada === 'Dinheiro' && trocoParaEl.value.trim()) {
+                    mensagem += `  Troco para: R$ ${trocoParaEl.value.trim()}\n`;
+                } else if (formaPagamentoSelecionada === 'Dinheiro') {
+                     mensagem += `  (Não precisa de troco ou não informado)\n`;
+                }
+
+                mensagem += `\n*ENDEREÇO PARA ENTREGA:*\n${enderecoEntregaInfo}\n`;
+                const enderecoParaUrl = encodeURIComponent(enderecoEntregaInfo.replace(/\n/g, ', '));
+                const linkGoogleMaps = `https://www.google.com/maps/search/?api=1&query=${enderecoParaUrl}`;
+                mensagem += `\n*Link do Local (Google Maps):*\n${linkGoogleMaps}\n`;
+                
+                mensagem += "\nObrigado(a)! Aguardo a confirmação. 😊";
+
                 const numeroWhatsApp = "556292714775"; const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`; window.open(urlWhatsApp, '_blank');
                 
                 carrinhoItensDetalhes = []; itensNoCarrinho = 0; cupomAplicado = null; inputCupomEl.value = ''; cupomFeedbackEl.textContent = ''; descontoAplicadoInfoEl.textContent = '';
+                // Limpa forma de pagamento para o próximo pedido
+                formaPagamentoSelectEl.value = '';
+                formaPagamentoSelecionada = '';
+                trocoParaEl.value = '';
+                trocoParaEl.classList.add('escondido');
+
                 atualizarContadorCarrinho(); 
                 renderizarCarrinhoModal(); 
                 fecharModalCarrinho(); 
