@@ -85,7 +85,6 @@
     .item-carrinho-detalhes{flex-grow:1;flex-shrink:1;min-width:0;display:flex;flex-direction:column;justify-content:center;overflow:hidden;margin-right:5px;}
     .item-carrinho-nome{font-weight:500;line-height:1.3;max-height:2.6em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;}
     .item-carrinho-descricao{font-size:0.75rem;color:#666;margin-top:3px;white-space:normal;line-height:1.3;max-height:2.6em;text-align:left;word-wrap:break-word;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;}
-    /* Wrapper para ações no carrinho, usado em mobile */
     .item-carrinho-acoes-wrapper{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:8px;}
     .item-carrinho-qtd-controle{display:flex;align-items:center;justify-content:center;flex-basis:auto;margin:0 5px 0 0;flex-shrink:0;}
     .item-carrinho-qtd-controle button.btn-qtd{background-color:#f0f0f0;border:1px solid #ccc;color:var(--cor-texto);width:28px;height:28px;border-radius:50%;font-weight:bold;cursor:pointer;line-height:24px;padding:0;display:flex;align-items:center;justify-content:center;font-size:1rem;}
@@ -136,7 +135,6 @@
       #lista-produtos{grid-template-columns:1fr;}
 
       #itens-carrinho-lista-modal .item-carrinho {
-        display: flex;
         flex-wrap: wrap; 
         align-items: flex-start; 
         row-gap: 8px; 
@@ -151,8 +149,8 @@
       }
       .item-carrinho-detalhes {
           flex-grow:1; 
-          flex-basis: calc(100% - 55px); /* Largura da img + margem */
-          min-width:120px; 
+          flex-basis: calc(100% - 55px); 
+          min-width:100px; 
       }
       .item-carrinho-nome{
           font-size:0.85rem; 
@@ -296,8 +294,10 @@
         let mensagem=`🍦 *Pedido Sorveteria Delícia* 🍦\n\n*Cliente:* ${clienteNomeEl.value.trim()}\n\nOlá! Gostaria de fazer o seguinte pedido:\n\n`;let subTotalItens=0;carrinhoItensDetalhes.forEach(item=>{subTotalItens+=item.preco*item.quantidade;});let valorDescontoFinal=0;let totalComDesconto=subTotalItens;if(cupomAplicado){if(cupomAplicado.tipo==="percentual")valorDescontoFinal=(subTotalItens*cupomAplicado.valor)/100;else if(cupomAplicado.tipo==="fixo")valorDescontoFinal=cupomAplicado.valor;valorDescontoFinal=Math.min(valorDescontoFinal,subTotalItens);totalComDesconto=subTotalItens-valorDescontoFinal;mensagem+=`Subtotal: R$ ${formatarPreco(subTotalItens)}\nDesconto (${cupomAplicado.codigo}): - R$ ${formatarPreco(valorDescontoFinal)}\n`;}
         carrinhoItensDetalhes.forEach(item=>{mensagem+=`*${item.nome}*${item.descricao?`\n  _${item.descricao}_`:''}\n  Qtd: ${item.quantidade}\n  Subtotal Item: R$ ${formatarPreco(item.preco*item.quantidade)}\n\n`;});mensagem+=`*TOTAL DO PEDIDO: R$ ${formatarPreco(totalComDesconto<0?0:totalComDesconto)}*\n\n`;mensagem+=`*FORMA DE PAGAMENTO:* ${formaPagamentoSelectEl.options[formaPagamentoSelectEl.selectedIndex].text}\n`;if(formaPagamentoSelecionada==='Dinheiro'&&trocoParaEl.value.trim()){mensagem+=`  Troco para: R$ ${trocoParaEl.value.trim()}\n`;}else if(formaPagamentoSelecionada==='Dinheiro'){mensagem+=`  (Não precisa de troco ou não informado)\n`;}
         mensagem+=`\n*ENDEREÇO PARA ENTREGA:*\n${enderecoEntregaInfo}\n`;if(clienteCoords&&clienteCoords.latitude&&clienteCoords.longitude){mensagem+=`Coordenadas (Aprox.): ${clienteCoords.latitude.toFixed(6)}, ${clienteCoords.longitude.toFixed(6)}\n`;}
-        const enderecoPrimeiraLinha=enderecoEntregaInfo.split('\n')[0];const linkGoogleMaps=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoPrimeiraLinha)}`;mensagem+=`\n*Link do Local (Google Maps):*\n${linkGoogleMaps}\n`;mensagem+="\nObrigado(a)! Aguardo a confirmação. 😊";
-        const numeroWhatsApp="5562982714775";const urlWhatsApp=`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;window.open(urlWhatsApp,'_blank');
+        const enderecoParaUrl = encodeURIComponent(enderecoEntregaInfo.replace(/\n/g, ', '));
+        const linkGoogleMaps = `https://maps.google.com/?q=${enderecoParaUrl}`;
+        mensagem+=`\n*Link do Local (Google Maps):*\n${linkGoogleMaps}\n`;mensagem+="\nObrigado(a)! Aguardo a confirmação. 😊";
+        const numeroWhatsApp="556292714775";const urlWhatsApp=`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;window.open(urlWhatsApp,'_blank');
         carrinhoItensDetalhes=[];itensNoCarrinho=0;cupomAplicado=null;inputCupomEl.value='';cupomFeedbackEl.textContent='';descontoAplicadoInfoEl.textContent='';formaPagamentoSelectEl.value='';formaPagamentoSelecionada='';trocoParaEl.value='';trocoParaEl.classList.add('escondido');
         atualizarContadorCarrinho();renderizarCarrinhoModal();fecharModalCarrinho();salvarDadosClienteNoLocalStorage();mostrarPopup("Pedido enviado para WhatsApp! ✅");
       });
