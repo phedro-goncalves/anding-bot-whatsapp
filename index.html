@@ -66,9 +66,9 @@
     #endereco-confirmado-msg.aviso{color:var(--cor-aviso);}
     #endereco-confirmado-msg.erro{color:var(--cor-erro);}
     #endereco-raio-feedback, #tempo-entrega-feedback, #taxa-entrega-feedback {margin-top:8px; font-weight:600; font-size:0.9em; min-height: 1.2em; color: var(--cor-texto);}
-    #endereco-raio-feedback.sucesso, #taxa-entrega-feedback.sucesso {color:var(--cor-sucesso);}
+    #endereco-raio-feedback.sucesso, #taxa-entrega-feedback.sucesso, #tempo-entrega-feedback.sucesso {color:var(--cor-sucesso);}
     #endereco-raio-feedback.aviso, #tempo-entrega-feedback.aviso, #taxa-entrega-feedback.aviso {color:var(--cor-aviso);}
-    #endereco-raio-feedback.erro, #taxa-entrega-feedback.erro {color:var(--cor-erro);}
+    #endereco-raio-feedback.erro, #taxa-entrega-feedback.erro, #tempo-entrega-feedback.erro {color:var(--cor-erro);}
     .busca-container{margin:1.5rem 0 2rem 0;text-align:center;}
     #input-busca-produto{padding:0.8rem 1rem;width:80%;max-width:450px;border:1px solid #ddd;border-radius:25px;font-family:'Poppins',sans-serif;font-size:1rem;box-shadow:var(--sombra-suave);}
     #input-busca-produto:focus{border-color:var(--cor-primaria);outline-color:var(--cor-primaria);}
@@ -406,34 +406,57 @@
       const CUPONS_VALIDOS={"AMAZONIA10":{tipo:"percentual",valor:10},"TRIUNFO5":{tipo:"fixo",valor:5},"CLIENTEVIP":{tipo:"percentual",valor:15}};
       
       function verificarHorarioFuncionamento() {
-          const agora = new Date();
-          const diaSemana = agora.getDay(); // 0 (Dom) a 6 (Sáb)
-          const hora = agora.getHours();
-          const minuto = agora.getMinutes();
-          const horaDecimal = hora + minuto / 60;
+        const agora = new Date();
+        const diaSemana = agora.getDay(); // 0 (Dom) a 6 (Sáb)
+        const hora = agora.getHours();
+        const minuto = agora.getMinutes();
+        const horaDecimal = hora + minuto / 60;
 
-          switch (diaSemana) {
-              case 0: // Domingo
-                  return horaDecimal >= 11 && horaDecimal < 19.5; // 11:00 - 19:30
-              case 1: // Segunda
-                  return horaDecimal >= 12 && horaDecimal < 23; // 12:00 - 23:00
-              case 2: // Terça
-                  return false; // Fechado
-              case 3: // Quarta
-              case 4: // Quinta
-              case 5: // Sexta
-                  return horaDecimal >= 12 && horaDecimal < 23; // 12:00 - 23:00
-              case 6: // Sábado
-                  return horaDecimal >= 11 && horaDecimal < 23; // 11:00 - 23:00
-              default:
-                  return false;
-          }
+        switch (diaSemana) {
+            case 0: return horaDecimal >= 11 && horaDecimal < 19.5;
+            case 1: return horaDecimal >= 12 && horaDecimal < 23;
+            case 2: return false;
+            case 3:
+            case 4:
+            case 5: return horaDecimal >= 12 && horaDecimal < 23;
+            case 6: return horaDecimal >= 11 && horaDecimal < 23;
+            default: return false;
+        }
       }
       function atualizarStatusFuncionamentoDisplay(){if(!statusAbertoFechadoEl)return;if(verificarHorarioFuncionamento()){statusAbertoFechadoEl.textContent='Aberto';statusAbertoFechadoEl.className='aberto';}else{statusAbertoFechadoEl.textContent='Fechado';statusAbertoFechadoEl.className='fechado';}}
-      function calcularDistancia(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c;}
+      
+      /**
+       * NOVA FUNÇÃO - Obtém a distância e o tempo de rota usando a API Google Distance Matrix.
+       * @param {object} origemCoords - Objeto com { latitude, longitude } do ponto de partida (a loja).
+       * @param {object} destinoCoords - Objeto com { latitude, longitude } do ponto de chegada (o cliente).
+       * @returns {Promise<object|null>} Uma promessa que resolve para um objeto { distanciaKm, tempoTexto } ou null se houver erro.
+       */
+      async function obterDistanciaDeRota(origemCoords, destinoCoords) {
+        const GOOGLE_API_KEY = 'AIzaSyAOYSuNCGxr8ZilsArGWqTd3D-y9jKUiBY'; // Sua chave de API existente.
+        const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origemCoords.latitude},${origemCoords.longitude}&destinations=${destinoCoords.latitude},${destinoCoords.longitude}&mode=driving&language=pt-BR&units=metric&key=${GOOGLE_API_KEY}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status === 'OK' && data.rows[0].elements[0].status === 'OK') {
+                const element = data.rows[0].elements[0];
+                const distanciaKm = element.distance.value / 1000;
+                const tempoTexto = element.duration.text;
+                return { distanciaKm, tempoTexto };
+            } else {
+                console.error('Erro na API Distance Matrix:', data.status, data.rows[0].elements[0].status);
+                return null;
+            }
+        } catch (error) {
+            console.error('Falha ao buscar distância da rota:', error);
+            return null;
+        }
+      }
+
       function validarEGuiar(elemento,mensagemErro,secaoParaScroll=null){mostrarPopup(mensagemErro,'erro');const elParaScroll=secaoParaScroll||elemento;if(elemento&&typeof elemento.focus==='function'){elemento.focus();}if(elParaScroll&&typeof elParaScroll.scrollIntoView==='function'){setTimeout(()=>{elParaScroll.scrollIntoView({behavior:'smooth',block:'center'});},100);}return false;}
       function calcularTaxaEntrega(distanciaKm){if(distanciaKm===null||typeof distanciaKm==='undefined'||distanciaKm>RAIO_MAXIMO_KM)return 0;if(distanciaKm<=3)return 5.00;if(distanciaKm>3&&distanciaKm<=6)return 8.00;if(distanciaKm>6&&distanciaKm<=9)return 10.00;if(distanciaKm>9&&distanciaKm<=RAIO_MAXIMO_KM)return 12.00;return 0;}
-      function calcularTempoEntregaEstimado(distanciaKm){if(distanciaKm===null||typeof distanciaKm==='undefined'||distanciaKm>RAIO_MAXIMO_KM)return"Indisponível";if(distanciaKm<4)return"Aprox. 40 minutos";if(distanciaKm<=7)return"Aprox. 60 minutos";if(distanciaKm<=10)return"Aprox. 75 minutos";if(distanciaKm<=RAIO_MAXIMO_KM)return"Aprox. 90 minutos";return"Indisponível";}
+      
       function salvarDadosClienteNoLocalStorage(){localStorage.setItem('trilhasAmazoniaCarrinhoItens',JSON.stringify(carrinhoItensDetalhes));localStorage.setItem('trilhasAmazoniaItensNoCarrinho',itensNoCarrinho.toString());if(clienteNomeEl.value.trim())localStorage.setItem('trilhasAmazoniaNomeCliente',clienteNomeEl.value.trim());if(enderecoEntregaInfo)localStorage.setItem('trilhasAmazoniaEnderecoEntrega',enderecoEntregaInfo);else localStorage.removeItem('trilhasAmazoniaEnderecoEntrega');if(clienteCoords)localStorage.setItem('trilhasAmazoniaClienteCoords',JSON.stringify(clienteCoords));else localStorage.removeItem('trilhasAmazoniaClienteCoords');if(cupomAplicado)localStorage.setItem('trilhasAmazoniaCupomAplicado',JSON.stringify(cupomAplicado));else localStorage.removeItem('trilhasAmazoniaCupomAplicado');localStorage.setItem('trilhasAmazoniaUltimosPedidos',JSON.stringify(ultimosPedidos));if(formaPagamentoSelecionada)localStorage.setItem('trilhasAmazoniaFormaPagamento',formaPagamentoSelecionada);else localStorage.removeItem('trilhasAmazoniaFormaPagamento');if(formaPagamentoSelecionada==='Dinheiro'&&trocoParaEl.value.trim())localStorage.setItem('trilhasAmazoniaTrocoPara',trocoParaEl.value.trim());else localStorage.removeItem('trilhasAmazoniaTrocoPara');localStorage.setItem('proximoNumeroPedido',proximoNumeroPedido.toString());}
       function carregarDadosDoLocalStorage(){const carrinhoSalvo=localStorage.getItem('trilhasAmazoniaCarrinhoItens');const itensNoCarrinhoSalvo=localStorage.getItem('trilhasAmazoniaItensNoCarrinho');const nomeSalvo=localStorage.getItem('trilhasAmazoniaNomeCliente');const enderecoSalvo=localStorage.getItem('trilhasAmazoniaEnderecoEntrega');const clienteCoordsSalvo=localStorage.getItem('trilhasAmazoniaClienteCoords');const cupomSalvo=localStorage.getItem('trilhasAmazoniaCupomAplicado');const ultimosPedidosSalvos=localStorage.getItem('trilhasAmazoniaUltimosPedidos');const formaPagamentoSalva=localStorage.getItem('trilhasAmazoniaFormaPagamento');const trocoParaSalvo=localStorage.getItem('trilhasAmazoniaTrocoPara');proximoNumeroPedido=parseInt(localStorage.getItem('proximoNumeroPedido'))||1;if(carrinhoSalvo)carrinhoItensDetalhes=JSON.parse(carrinhoSalvo);if(itensNoCarrinhoSalvo)itensNoCarrinho=parseInt(itensNoCarrinhoSalvo,10)||0;if(nomeSalvo)clienteNomeEl.value=nomeSalvo;if(enderecoSalvo){enderecoEntregaInfo=enderecoSalvo;enderecoConfirmadoMsgEl.textContent="Usaremos o último nome e endereço informados.";enderecoConfirmadoMsgEl.style.display='block';}if(clienteCoordsSalvo)clienteCoords=JSON.parse(clienteCoordsSalvo);if(cupomSalvo)cupomAplicado=JSON.parse(cupomSalvo);if(ultimosPedidosSalvos)ultimosPedidos=JSON.parse(ultimosPedidosSalvos);if(formaPagamentoSalva){formaPagamentoSelectEl.value=formaPagamentoSalva;formaPagamentoSelecionada=formaPagamentoSalva;trocoParaEl.classList.toggle('escondido',formaPagamentoSalva!=='Dinheiro');if(formaPagamentoSalva==='Dinheiro'&&trocoParaSalvo){trocoParaEl.value=trocoParaSalvo;}}atualizarContadorCarrinho();renderizarUltimosPedidos();}
       function atualizarContadorCarrinho(){if(contadorCarrinhoHeaderEl)contadorCarrinhoHeaderEl.textContent=itensNoCarrinho;}
@@ -545,7 +568,6 @@
         }
 
         try {
-            // Substitua 'SUA_CHAVE_API_AQUI' pela sua chave de API do Google Maps.
             const GOOGLE_API_KEY = 'AIzaSyAOYSuNCGxr8ZilsArGWqTd3D-y9jKUiBY'; 
             const urlGoogleMaps = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cepClienteInput)}&key=${GOOGLE_API_KEY}&language=pt-BR`;
             
@@ -588,7 +610,83 @@
         }
       };
       
-      window.confirmarEnderecoCompleto=async function(){const nomeCliente=clienteNomeEl.value.trim();if(!nomeCliente){validarEGuiar(clienteNomeEl,"Por favor, informe seu nome completo.",document.getElementById('cep-section'));return;}const rua=enderecoRuaEl.value.trim();const numero=enderecoNumeroEl.value.trim();const complemento=enderecoComplementoEl.value.trim();const bairro=enderecoBairroEl.value.trim();const cidade=enderecoCidadeEl.value.trim();const uf=enderecoUfEl.value.trim();const cep=cepInputEl.value.replace(/\D/g,'');if(!rua){validarEGuiar(enderecoRuaEl,"Por favor, informe a rua.",enderecoRuaEl);return;}if(!numero){validarEGuiar(enderecoNumeroEl,"Por favor, informe o número.",enderecoNumeroEl);return;}if(!bairro){validarEGuiar(enderecoBairroEl,"Por favor, informe o bairro.",enderecoBairroEl);return;}if(!cidade){validarEGuiar(enderecoCidadeEl,"Por favor, informe a cidade.",enderecoCidadeEl);return;}if(!uf){validarEGuiar(enderecoUfEl,"Por favor, informe o UF.",enderecoUfEl);return;}if(cep.length!==8){validarEGuiar(cepInputEl,"CEP inválido. Verifique.",cepInputEl);return;}enderecoEntregaInfo=`${rua}, Nº ${numero}`;if(complemento)enderecoEntregaInfo+=`, ${complemento}`;enderecoEntregaInfo+=`\nBairro: ${bairro}\nCidade: ${cidade} - ${uf}\nCEP: ${cep}`;enderecoConfirmadoMsgEl.textContent="Endereço preenchido!";enderecoConfirmadoMsgEl.className='sucesso';enderecoConfirmadoMsgEl.style.display='block';if(clienteCoords&&clienteCoords.latitude&&clienteCoords.longitude){const distancia=calcularDistancia(LOJA_LAT,LOJA_LON,clienteCoords.latitude,clienteCoords.longitude);if(distancia<=RAIO_MAXIMO_KM){taxaEntregaAtual=calcularTaxaEntrega(distancia);tempoEntregaEstimadoAtual=calcularTempoEntregaEstimado(distancia);enderecoRaioFeedbackEl.textContent=`Entregamos na sua região! Distância: ${distancia.toFixed(1)} km.`;enderecoRaioFeedbackEl.className='sucesso';taxaEntregaFeedbackEl.textContent=`Taxa por distância: R$ ${formatarPreco(taxaEntregaAtual)}`;taxaEntregaFeedbackEl.className='sucesso';tempoEntregaFeedbackEl.textContent=`Tempo Estimado: ${tempoEntregaEstimadoAtual}`;tempoEntregaFeedbackEl.className='sucesso';}else{taxaEntregaAtual=0;tempoEntregaEstimadoAtual="Indisponível";enderecoRaioFeedbackEl.textContent=`Não entregamos na sua região. Distância: ${distancia.toFixed(1)} km (Máx: ${RAIO_MAXIMO_KM} km).`;enderecoRaioFeedbackEl.className='erro';taxaEntregaFeedbackEl.textContent='Taxa de Entrega: Indisponível';taxaEntregaFeedbackEl.className='erro';tempoEntregaFeedbackEl.textContent='Tempo Estimado: Indisponível';tempoEntregaFeedbackEl.className='erro';}}else{taxaEntregaAtual=0;tempoEntregaEstimadoAtual="A combinar";enderecoRaioFeedbackEl.textContent=`Não foi possível calcular a distância automaticamente.`;enderecoRaioFeedbackEl.className='aviso';taxaEntregaFeedbackEl.textContent=`A taxa será combinada via WhatsApp.`;taxaEntregaFeedbackEl.className='aviso';tempoEntregaFeedbackEl.textContent=``;tempoEntregaFeedbackEl.className='';}renderizarCarrinhoModal();salvarDadosClienteNoLocalStorage();mostrarPopup("Endereço e taxa de entrega confirmados!","sucesso");};
+      window.confirmarEnderecoCompleto = async function(){
+        const nomeCliente=clienteNomeEl.value.trim();
+        if(!nomeCliente){validarEGuiar(clienteNomeEl,"Por favor, informe seu nome completo.",document.getElementById('cep-section'));return;}
+        const rua=enderecoRuaEl.value.trim();
+        const numero=enderecoNumeroEl.value.trim();
+        const complemento=enderecoComplementoEl.value.trim();
+        const bairro=enderecoBairroEl.value.trim();
+        const cidade=enderecoCidadeEl.value.trim();
+        const uf=enderecoUfEl.value.trim();
+        const cep=cepInputEl.value.replace(/\D/g,'');
+
+        if(!rua){validarEGuiar(enderecoRuaEl,"Por favor, informe a rua.",enderecoRuaEl);return;}
+        if(!numero){validarEGuiar(enderecoNumeroEl,"Por favor, informe o número.",enderecoNumeroEl);return;}
+        if(!bairro){validarEGuiar(enderecoBairroEl,"Por favor, informe o bairro.",enderecoBairroEl);return;}
+        if(!cidade){validarEGuiar(enderecoCidadeEl,"Por favor, informe a cidade.",enderecoCidadeEl);return;}
+        if(!uf){validarEGuiar(enderecoUfEl,"Por favor, informe o UF.",enderecoUfEl);return;}
+        if(cep.length!==8){validarEGuiar(cepInputEl,"CEP inválido. Verifique.",cepInputEl);return;}
+
+        enderecoEntregaInfo=`${rua}, Nº ${numero}`;
+        if(complemento)enderecoEntregaInfo+=`, ${complemento}`;
+        enderecoEntregaInfo+=`\nBairro: ${bairro}\nCidade: ${cidade} - ${uf}\nCEP: ${cep}`;
+        enderecoConfirmadoMsgEl.textContent="Endereço preenchido!";
+        enderecoConfirmadoMsgEl.className='sucesso';
+        enderecoConfirmadoMsgEl.style.display='block';
+
+        if(clienteCoords&&clienteCoords.latitude&&clienteCoords.longitude){
+            const lojaCoords = { latitude: LOJA_LAT, longitude: LOJA_LON };
+            const rotaInfo = await obterDistanciaDeRota(lojaCoords, clienteCoords);
+
+            if (rotaInfo) {
+                const { distanciaKm, tempoTexto } = rotaInfo;
+                if (distanciaKm <= RAIO_MAXIMO_KM) {
+                    taxaEntregaAtual = calcularTaxaEntrega(distanciaKm);
+                    tempoEntregaEstimadoAtual = tempoTexto;
+
+                    enderecoRaioFeedbackEl.textContent = `Entregamos na sua região! Distância da rota: ${distanciaKm.toFixed(1)} km.`;
+                    enderecoRaioFeedbackEl.className = 'sucesso';
+                    taxaEntregaFeedbackEl.textContent = `Taxa por distância: R$ ${formatarPreco(taxaEntregaAtual)}`;
+                    taxaEntregaFeedbackEl.className = 'sucesso';
+                    tempoEntregaFeedbackEl.textContent = `Tempo Estimado de Viagem: ${tempoEntregaEstimadoAtual}`;
+                    tempoEntregaFeedbackEl.className = 'sucesso';
+
+                } else {
+                    taxaEntregaAtual = 0;
+                    tempoEntregaEstimadoAtual = "Indisponível";
+                    enderecoRaioFeedbackEl.textContent = `Não entregamos na sua região. Distância da rota: ${distanciaKm.toFixed(1)} km (Máx: ${RAIO_MAXIMO_KM} km).`;
+                    enderecoRaioFeedbackEl.className = 'erro';
+                    taxaEntregaFeedbackEl.textContent = 'Taxa de Entrega: Indisponível';
+                    taxaEntregaFeedbackEl.className = 'erro';
+                    tempoEntregaFeedbackEl.textContent = 'Tempo Estimado: Indisponível';
+                    tempoEntregaFeedbackEl.className = 'erro';
+                }
+            } else {
+                taxaEntregaAtual = 0;
+                tempoEntregaEstimadoAtual = "A combinar";
+                enderecoRaioFeedbackEl.textContent = `Não foi possível calcular a rota automaticamente.`;
+                enderecoRaioFeedbackEl.className = 'aviso';
+                taxaEntregaFeedbackEl.textContent = `A taxa será combinada via WhatsApp.`;
+                taxaEntregaFeedbackEl.className = 'aviso';
+                tempoEntregaFeedbackEl.textContent = ``;
+                tempoEntregaFeedbackEl.className = '';
+            }
+        } else {
+            taxaEntregaAtual=0;
+            tempoEntregaEstimadoAtual="A combinar";
+            enderecoRaioFeedbackEl.textContent=`Não foi possível calcular a distância automaticamente.`;
+            enderecoRaioFeedbackEl.className='aviso';
+            taxaEntregaFeedbackEl.textContent=`A taxa será combinada via WhatsApp.`;
+            taxaEntregaFeedbackEl.className='aviso';
+            tempoEntregaFeedbackEl.textContent=``;
+            tempoEntregaFeedbackEl.className='';
+        }
+        renderizarCarrinhoModal();
+        salvarDadosClienteNoLocalStorage();
+        mostrarPopup("Endereço e taxa de entrega confirmados!","sucesso");
+      };
+
       if(cepInputEl)cepInputEl.addEventListener('keypress',function(event){if(event.key==='Enter'){event.preventDefault();validarEPreencherEndereco();}});
       if(formaPagamentoSelectEl){formaPagamentoSelectEl.addEventListener('change',function(){formaPagamentoSelecionada=this.value;trocoParaEl.classList.toggle('escondido',this.value!=='Dinheiro');if(this.value!=='Dinheiro'){trocoParaEl.value='';}salvarDadosClienteNoLocalStorage();});}
       function salvarPedidoAtualComoUltimo(){if(carrinhoItensDetalhes.length===0)return;let subTotalItens=0;carrinhoItensDetalhes.forEach(item=>{recalcularPrecoItemCarrinho(item);subTotalItens+=item.precoTotalItem*item.quantidade;});let valorDescontoFinal=0;if(cupomAplicado){if(cupomAplicado.tipo==="percentual")valorDescontoFinal=(subTotalItens*cupomAplicado.valor)/100;else if(cupomAplicado.tipo==="fixo")valorDescontoFinal=cupomAplicado.valor;valorDescontoFinal=Math.min(valorDescontoFinal,subTotalItens);}const totalComDescontoETaxa=(subTotalItens-valorDescontoFinal)+taxaEntregaAtual;const numeroDoPedidoAtual=proximoNumeroPedido;const pedidoAtual={id:new Date().getTime(),numeroPedido:numeroDoPedidoAtual,itens:JSON.parse(JSON.stringify(carrinhoItensDetalhes)),totalPago:totalComDescontoETaxa<0?0:totalComDescontoETaxa,subtotalItens:subTotalItens,descontoValor:valorDescontoFinal,taxaEntrega:taxaEntregaAtual,cupomUsado:cupomAplicado?cupomAplicado.codigo:null,data:new Date().toLocaleDateString('pt-BR')+' '+new Date().toLocaleTimeString('pt-BR'),nomeCliente:clienteNomeEl.value.trim(),endereco:enderecoEntregaInfo,clienteCoords:clienteCoords,formaPagamento:formaPagamentoSelecionada,troco:trocoParaEl.value.trim(),tempoEstimado:tempoEntregaEstimadoAtual};ultimosPedidos.unshift(pedidoAtual);if(ultimosPedidos.length>MAX_ULTIMOS_PEDIDOS)ultimosPedidos.pop();proximoNumeroPedido++;localStorage.setItem('proximoNumeroPedido',proximoNumeroPedido.toString());renderizarUltimosPedidos();return numeroDoPedidoAtual;}
@@ -648,10 +746,10 @@
         
         let linkGoogleMaps = '';
         if (clienteCoords && clienteCoords.latitude && clienteCoords.longitude) {
-            linkGoogleMaps = `https://www.google.com/maps/search/?api=1&query=${clienteCoords.latitude},${clienteCoords.longitude}`;
+            linkGoogleMaps = `https://www.google.com/maps?q=${clienteCoords.latitude},${clienteCoords.longitude}`;
         } else {
             const enderecoParaUrl = encodeURIComponent(enderecoEntregaInfo.replace(/\n/g, ', '));
-            linkGoogleMaps = `https://www.google.com/maps/search/?api=1&query=${enderecoParaUrl}`;
+            linkGoogleMaps = `https://www.google.com/maps?q=${enderecoParaUrl}`;
         }
 
         mensagem += `\n*Ver no mapa:*\n${linkGoogleMaps}\n`;
@@ -704,12 +802,12 @@
         if(!clienteNomeEl.value.trim()){validarEGuiar(clienteNomeEl,"Por favor, informe seu nome completo.",document.getElementById('cep-section'));return;}
         if(!enderecoEntregaInfo){mostrarPopup("Por favor, confirme seu endereço de entrega primeiro na seção 'Endereço para Entrega'.",'erro');fecharModalCarrinho();let elFoco=cepInputEl;if(enderecoCompletoFormEl.classList.contains('escondido')||!cepInputEl.value.trim()){elFoco=cepInputEl;}else if(!enderecoNumeroEl.value.trim()){elFoco=enderecoNumeroEl;}else{elFoco=document.getElementById('btn-confirmar-endereco')||cepInputEl;}validarEGuiar(elFoco,"Confirme seu endereço de entrega.",document.getElementById('cep-section'));return;}
         if(taxaEntregaAtual === 0 && clienteCoords) {
-           mostrarPopup("Endereço fora do raio de entrega.", "erro");
-           return;
+          mostrarPopup("Endereço fora do raio de entrega.", "erro");
+          return;
         } else if (taxaEntregaAtual === 0 && !clienteCoords) {
-           if (!confirm("A taxa de entrega será combinada via WhatsApp. Deseja continuar?")) {
-               return;
-           }
+          if (!confirm("A taxa de entrega será combinada via WhatsApp. Deseja continuar?")) {
+              return;
+          }
         }
         if(!formaPagamentoSelecionada){if(modalCarrinhoEl.classList.contains('escondido'))abrirModalCarrinho();validarEGuiar(formaPagamentoSelectEl,"Selecione uma forma de pagamento.",formaPagamentoSelectEl);return;}
         if(formaPagamentoSelecionada==='Dinheiro'&&!trocoParaEl.value.trim()&&!confirm("Pagamento em Dinheiro selecionado, mas não informou o valor para troco. Continuar mesmo assim?")){if(modalCarrinhoEl.classList.contains('escondido'))abrirModalCarrinho();validarEGuiar(trocoParaEl,"Informe o valor para troco ou cancele para alterar.",trocoParaEl);return;}
